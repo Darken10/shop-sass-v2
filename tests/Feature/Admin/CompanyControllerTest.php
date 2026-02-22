@@ -71,8 +71,7 @@ it('shows the create form to admin', function () {
         ->assertInertia(
             fn (Assert $page) => $page
                 ->component('admin/companies/create')
-                ->has('types')
-                ->has('statuses'),
+                ->has('types'),
         );
 });
 
@@ -150,8 +149,7 @@ it('shows the edit form to admin', function () {
             fn (Assert $page) => $page
                 ->component('admin/companies/edit')
                 ->has('company')
-                ->has('types')
-                ->has('statuses'),
+                ->has('types'),
         );
 });
 

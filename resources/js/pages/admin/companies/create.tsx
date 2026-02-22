@@ -15,13 +15,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Nouvelle entreprise', href: '#' },
 ];
 
-export default function CompaniesCreate({
-    types,
-    statuses,
-}: {
-    types: EnumOption[];
-    statuses: EnumOption[];
-}) {
+export default function CompaniesCreate({ types }: { types: EnumOption[] }) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Nouvelle entreprise" />
@@ -45,7 +39,7 @@ export default function CompaniesCreate({
                 <Form {...CompanyController.store.form()}>
                     {({ processing, errors }) => (
                         <>
-                            <CompanyForm types={types} statuses={statuses} errors={errors} />
+                            <CompanyForm types={types} errors={errors} />
 
                             <div className="flex items-center justify-end gap-3 pt-2">
                                 <Button type="button" variant="outline" asChild>

@@ -12,11 +12,9 @@ type EnumOption = { value: string; name: string };
 export default function CompaniesEdit({
     company,
     types,
-    statuses,
 }: {
     company: App.Data.CompanyData & { id: string };
     types: EnumOption[];
-    statuses: EnumOption[];
 }) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
@@ -51,7 +49,6 @@ export default function CompaniesEdit({
                             <CompanyForm
                                 defaults={company}
                                 types={types}
-                                statuses={statuses}
                                 errors={errors}
                             />
 

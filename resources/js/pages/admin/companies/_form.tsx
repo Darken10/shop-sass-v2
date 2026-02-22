@@ -9,30 +9,29 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 type EnumOption = { value: string; name: string };
 
+const STATUS_OPTIONS = [
+    { value: 'active', label: 'Actif' },
+    { value: 'inactive', label: 'Inactif' },
+    { value: 'suspended', label: 'Suspendu' },
+] as const;
+
 type Props = {
     defaults?: Partial<App.Data.CompanyData>;
     types: EnumOption[];
-    statuses: EnumOption[];
     errors: Partial<Record<keyof App.Data.CompanyData, string>>;
 };
 
-const typeLabels: Record<string, string> = {
-    alimentation: 'Alimentation',
-    boutique: 'Boutique',
-    restaurant: 'Restaurant',
-    pharmacy: 'Pharmacie',
-    service: 'Service',
-};
+const typeLabels: EnumOption[] = [
+    { value: 'alimentation', name: 'Alimentation' },
+    { value: 'boutique', name: 'Boutique' },
+    { value: 'restaurant', name: 'Restaurant' },
+    { value: 'pharmacy', name: 'Pharmacie' },
+    { value: 'service', name: 'Service' },
+];
 
-const statusLabels: Record<string, string> = {
-    active: 'Actif',
-    inactive: 'Inactif',
-    suspended: 'Suspendu',
-};
-
-export default function CompanyForm({ defaults = {}, types, statuses, errors }: Props) {
-    const [typeValue, setTypeValue] = useState<string>(defaults.type ?? '');
-    const [statusValue, setStatusValue] = useState<string>(defaults.status ?? 'active');
+export default function CompanyForm({ defaults = {}, types, errors }: Props) {
+    const [typeValue, setTypeValue] = useState<string>((defaults.type as string) ?? '');
+    const [statusValue, setStatusValue] = useState<string>((defaults.status as string) ?? 'active');
     const [logoPreview, setLogoPreview] = useState<string | null>(defaults.logo ?? null);
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -96,9 +95,9 @@ export default function CompanyForm({ defaults = {}, types, statuses, errors }: 
                                         <SelectValue placeholder="Choisir un type" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {types.map((t) => (
+                                        {typeLabels.map((t) => (
                                             <SelectItem key={t.value} value={t.value}>
-                                                {typeLabels[t.value] ?? t.name}
+                                                {t.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -116,9 +115,9 @@ export default function CompanyForm({ defaults = {}, types, statuses, errors }: 
                                         <SelectValue placeholder="Choisir un statut" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {statuses.map((s) => (
+                                        {STATUS_OPTIONS.map((s) => (
                                             <SelectItem key={s.value} value={s.value}>
-                                                {statusLabels[s.value] ?? s.name}
+                                                {s.label}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>

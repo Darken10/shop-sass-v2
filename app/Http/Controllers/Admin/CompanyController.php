@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Data\CompanyData;
-use App\Enums\CompanyStatusEnum;
 use App\Enums\CompanyTypeEnum;
 use App\Http\Controllers\Controller;
 use App\Models\Company\Company;
@@ -35,7 +34,6 @@ class CompanyController extends Controller
 
         return Inertia::render('admin/companies/create', [
             'types' => CompanyTypeEnum::cases(),
-            'statuses' => CompanyStatusEnum::cases(),
         ]);
     }
 
@@ -75,7 +73,6 @@ class CompanyController extends Controller
         return Inertia::render('admin/companies/edit', [
             'company' => CompanyData::from($company),
             'types' => CompanyTypeEnum::cases(),
-            'statuses' => CompanyStatusEnum::cases(),
         ]);
     }
 
