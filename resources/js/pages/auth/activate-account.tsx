@@ -13,9 +13,12 @@ type Props = {
         name: string;
         email: string;
     };
+    queryString: string;
 };
 
-export default function ActivateAccount({ user }: Props) {
+export default function ActivateAccount({ user, queryString }: Props) {
+    const actionUrl = `/activate/${user.id}${queryString ? '?' + queryString : ''}`;
+
     return (
         <AuthLayout
             title="Activez votre compte"
@@ -24,7 +27,8 @@ export default function ActivateAccount({ user }: Props) {
             <Head title="Activer mon compte" />
 
             <Form
-                {...store.form(user)}
+                action={actionUrl}
+                method={store.definition.methods[0]}
                 resetOnSuccess={['password', 'password_confirmation']}
             >
                 {({ processing, errors }) => (
