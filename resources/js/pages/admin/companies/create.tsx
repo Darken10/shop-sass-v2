@@ -52,7 +52,7 @@ export default function CompaniesCreate({
                                     <a href={companiesIndex().url}>Annuler</a>
                                 </Button>
                                 <Button type="submit" disabled={processing}>
-                                    {processing ? 'Enregistrement…' : 'Créer l'entreprise'}
+                                    {processing ? 'Enregistrement…' : "Créer l'entreprise"}
                                 </Button>
                             </div>
                         </>
