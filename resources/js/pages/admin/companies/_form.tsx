@@ -1,5 +1,5 @@
-import { useCallback, useRef, useState } from 'react';
 import { Building2, Globe, Mail, MapPin, Phone, Tag, Upload, X } from 'lucide-react';
+import { useCallback, useRef, useState } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,7 +29,7 @@ const typeLabels: EnumOption[] = [
     { value: 'service', name: 'Service' },
 ];
 
-export default function CompanyForm({ defaults = {}, types, errors }: Props) {
+export default function CompanyForm({ defaults = {}, errors }: Props) {
     const [typeValue, setTypeValue] = useState<string>((defaults.type as string) ?? '');
     const [statusValue, setStatusValue] = useState<string>((defaults.status as string) ?? 'active');
     const [logoPreview, setLogoPreview] = useState<string | null>(defaults.logo ?? null);

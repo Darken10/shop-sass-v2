@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Company\Company;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -62,7 +63,7 @@ class CompanyController extends Controller
         $this->authorize('view', $company);
 
         return Inertia::render('admin/companies/show', [
-            'company' => CompanyData::from($company),
+            'company' => $this->companyPayload($company),
         ]);
     }
 
@@ -71,7 +72,7 @@ class CompanyController extends Controller
         $this->authorize('update', $company);
 
         return Inertia::render('admin/companies/edit', [
-            'company' => CompanyData::from($company),
+            'company' => $this->companyPayload($company),
             'types' => CompanyTypeEnum::cases(),
         ]);
     }
@@ -103,5 +104,13 @@ class CompanyController extends Controller
 
         return to_route('admin.companies.index')
             ->with('success', 'Entreprise supprimée avec succès.');
+    }
+
+    private function companyPayload(Company $company): array
+    {
+        return array_merge(CompanyData::from($company)->toArray(), [
+            'id' => $company->id,
+            'logo' => $company->logo ? Storage::url($company->logo) : null,
+        ]);
     }
 }
