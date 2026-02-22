@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\CompanyController;
+use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified', 'role:super admin|admin'])
@@ -8,4 +9,7 @@ Route::middleware(['auth', 'verified', 'role:super admin|admin'])
     ->name('admin.')
     ->group(function () {
         Route::resource('companies', CompanyController::class);
+        Route::post('users/{user}/resend-activation', [UserController::class, 'resendActivation'])
+            ->name('users.resend-activation');
+        Route::resource('users', UserController::class)->except(['show']);
     });
