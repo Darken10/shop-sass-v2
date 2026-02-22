@@ -2,6 +2,9 @@
 
 namespace App\Enums;
 
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
+
+#[TypeScript]
 enum CompanyTypeEnum: string
 {
     case ALIMENTATION = 'alimentation';
@@ -9,7 +12,6 @@ enum CompanyTypeEnum: string
     case RESTAURANT = 'restaurant';
     case PHARMACY = 'pharmacy';
     case SERVICE = 'service';
-
 
     public static function all(): array
     {

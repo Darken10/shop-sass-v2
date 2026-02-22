@@ -8,14 +8,15 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Company extends Model
 {
     /** @use HasFactory<\Database\Factories\Company\CompanyFactory> */
-    use HasFactory,HasUuids;
-
+    use HasFactory,HasUuids,SoftDeletes;
 
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     protected $fillable = [
@@ -32,6 +33,7 @@ class Company extends Model
         'logo',
         'type',
         'status',
+        'created_by',
     ];
 
     protected $casts = [
