@@ -6,7 +6,12 @@ return [
      * is an array, it will try to convert from the first format that works,
      * and will serialize dates using the first format from the array.
      */
-    'date_format' => DATE_ATOM,
+    'date_format' => [DATE_ATOM,
+        'Y-m-d\TH:i:sP',
+        'Y-m-d H:i:s',
+        'Y-m-d',
+
+    ],
 
     /*
      * When transforming or casting dates, the following timezone will be used to
