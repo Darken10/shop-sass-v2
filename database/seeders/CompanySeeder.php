@@ -17,10 +17,11 @@ class CompanySeeder extends Seeder
         $company = \App\Models\Company\Company::factory()->create();
 
         // Create a user and associate it with the company
-        $user = User::factory()->create([
+        $user = User::factory()->admin()->create([
             'company_id' => $company->id,
         ]);
 
         // Optionally, you can assign roles or permissions to the user here
+
     }
 }

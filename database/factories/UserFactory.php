@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -55,5 +56,65 @@ class UserFactory extends Factory
             'two_factor_recovery_codes' => encrypt(json_encode(['recovery-code-1'])),
             'two_factor_confirmed_at' => now(),
         ]);
+    }
+
+    /**
+     * Create a super admin user.
+     */
+    public function superAdmin(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            $user->assignRole('super admin');
+        });
+    }
+
+    /**
+     * Create an admin user.
+     */
+    public function admin(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            $user->assignRole('admin');
+        });
+    }
+
+    /**
+     * Create a gestionnaire user.
+     */
+    public function gestionnaire(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            $user->assignRole('gestionnaire');
+        });
+    }
+
+    /**
+     * Create a caissier user.
+     */
+    public function caissier(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            $user->assignRole('caissier');
+        });
+    }
+
+    /**
+     * Create a logisticien user.
+     */
+    public function logisticien(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            $user->assignRole('logisticien');
+        });
+    }
+
+    /**
+     * Create a magasinier user.
+     */
+    public function magasinier(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            $user->assignRole('magasinier');
+        });
     }
 }
