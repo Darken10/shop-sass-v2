@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Building2, Folder, LayoutGrid } from 'lucide-react';
+import { BookOpen, Building2, Folder, LayoutGrid, Users } from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -15,6 +15,7 @@ import {
 import type { NavItem } from '@/types';
 import AppLogo from './app-logo';
 import { index as companiesIndex } from '@/actions/App/Http/Controllers/Admin/CompanyController';
+import { index as usersIndex } from '@/actions/App/Http/Controllers/Admin/UserController';
 import { dashboard } from '@/routes';
 
 const footerNavItems: NavItem[] = [
@@ -46,6 +47,11 @@ export function AppSidebar() {
                       title: 'Entreprises',
                       href: companiesIndex().url,
                       icon: Building2,
+                  } satisfies NavItem,
+                  {
+                      title: 'Utilisateurs',
+                      href: usersIndex().url,
+                      icon: Users,
                   } satisfies NavItem,
               ]
             : []),
