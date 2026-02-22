@@ -8,7 +8,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Company\Company;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -110,7 +109,6 @@ class CompanyController extends Controller
     {
         return array_merge(CompanyData::from($company)->toArray(), [
             'id' => $company->id,
-            'logo' => $company->logo ? Storage::url($company->logo) : null,
         ]);
     }
 }

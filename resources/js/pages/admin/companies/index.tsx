@@ -1,9 +1,9 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Building2, Edit, Eye, Plus, Trash2 } from 'lucide-react';
+import { Building2, Edit, Eye, Globe, Mail, MapPin, Plus, Trash2, User } from 'lucide-react';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -25,8 +25,11 @@ type Company = {
     type: App.Enums.CompanyTypeEnum;
     status: App.Enums.CompanyStatusEnum;
     email: string | null;
+    phone: string | null;
     city: string | null;
     country: string | null;
+    website: string | null;
+    logo: string | null;
     created_at: string;
     creator: Creator | null;
 };
@@ -102,105 +105,110 @@ export default function CompaniesIndex({ companies }: { companies: PaginatedComp
 
                 <Separator />
 
-                {/* Table */}
-                <Card>
-                    <CardHeader className="pb-0">
-                        <p className="text-sm text-muted-foreground">
-                            Page {companies.current_page} sur {companies.last_page}
-                        </p>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                        {companies.data.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
-                                <Building2 className="size-12 text-muted-foreground/40" />
-                                <div>
-                                    <p className="font-medium">Aucune entreprise trouvée</p>
-                                    <p className="text-sm text-muted-foreground">Commencez par créer votre première entreprise.</p>
-                                </div>
-                                <Button asChild size="sm" variant="outline">
-                                    <Link href={create().url}>
-                                        <Plus className="size-4" />
-                                        Créer une entreprise
-                                    </Link>
-                                </Button>
-                            </div>
-                        ) : (
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-sm">
-                                    <thead>
-                                        <tr className="border-b bg-muted/40">
-                                            <th className="px-4 py-3 text-left font-medium text-muted-foreground">Entreprise</th>
-                                            <th className="px-4 py-3 text-left font-medium text-muted-foreground">Type</th>
-                                            <th className="px-4 py-3 text-left font-medium text-muted-foreground">Statut</th>
-                                            <th className="px-4 py-3 text-left font-medium text-muted-foreground">Localisation</th>
-                                            <th className="px-4 py-3 text-left font-medium text-muted-foreground">Créateur</th>
-                                            <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y">
-                                        {companies.data.map((company) => {
-                                            const status = statusConfig[company.status];
-                                            return (
-                                                <tr key={company.id} className="transition-colors hover:bg-muted/30">
-                                                    <td className="px-4 py-3">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 font-semibold text-primary text-xs">
-                                                                {company.name.slice(0, 2).toUpperCase()}
-                                                            </div>
-                                                            <div>
-                                                                <p className="font-medium">{company.name}</p>
-                                                                {company.email && (
-                                                                    <p className="text-xs text-muted-foreground">{company.email}</p>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-4 py-3 text-muted-foreground">
-                                                        {typeLabels[company.type]}
-                                                    </td>
-                                                    <td className="px-4 py-3">
-                                                        <Badge variant={status.variant}>{status.label}</Badge>
-                                                    </td>
-                                                    <td className="px-4 py-3 text-muted-foreground">
-                                                        {[company.city, company.country].filter(Boolean).join(', ') || '—'}
-                                                    </td>
-                                                    <td className="px-4 py-3 text-muted-foreground">
-                                                        {company.creator?.name ?? '—'}
-                                                    </td>
-                                                    <td className="px-4 py-3">
-                                                        <div className="flex items-center justify-end gap-1">
-                                                            <Button asChild variant="ghost" size="icon" className="size-8">
-                                                                <Link href={show(company.id).url} prefetch>
-                                                                    <Eye className="size-4" />
-                                                                    <span className="sr-only">Voir</span>
-                                                                </Link>
-                                                            </Button>
-                                                            <Button asChild variant="ghost" size="icon" className="size-8">
-                                                                <Link href={edit(company.id).url} prefetch>
-                                                                    <Edit className="size-4" />
-                                                                    <span className="sr-only">Modifier</span>
-                                                                </Link>
-                                                            </Button>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                className="size-8 text-destructive hover:text-destructive"
-                                                                onClick={() => setDeleteTarget(company)}
-                                                            >
-                                                                <Trash2 className="size-4" />
-                                                                <span className="sr-only">Supprimer</span>
-                                                            </Button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
+                {/* Cards grid */}
+                {companies.data.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed py-20 text-center">
+                        <Building2 className="size-12 text-muted-foreground/40" />
+                        <div>
+                            <p className="font-medium">Aucune entreprise trouvée</p>
+                            <p className="text-sm text-muted-foreground">Commencez par créer votre première entreprise.</p>
+                        </div>
+                        <Button asChild size="sm" variant="outline">
+                            <Link href={create().url}>
+                                <Plus className="size-4" />
+                                Créer une entreprise
+                            </Link>
+                        </Button>
+                    </div>
+                ) : (
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        {companies.data.map((company) => {
+                            const status = statusConfig[company.status];
+                            const location = [company.city, company.country].filter(Boolean).join(', ');
+                            return (
+                                <Card key={company.id} className="flex flex-col overflow-hidden transition-shadow hover:shadow-md">
+                                    {/* Top banner + avatar */}
+                                    <div className="relative h-16 bg-primary/8">
+                                        <div className="absolute -bottom-6 left-4 flex size-12 items-center justify-center rounded-xl border-2 border-background bg-background shadow-sm">
+                                            {company.logo ? (
+                                                <img
+                                                    src={company.logo}
+                                                    alt={company.name}
+                                                    className="size-10 rounded-lg object-cover"
+                                                />
+                                            ) : (
+                                                <span className="text-sm font-bold text-primary">
+                                                    {company.name.slice(0, 2).toUpperCase()}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="absolute right-3 top-3">
+                                            <Badge variant={status.variant}>{status.label}</Badge>
+                                        </div>
+                                    </div>
+
+                                    <CardContent className="flex flex-1 flex-col gap-3 pt-9">
+                                        <div>
+                                            <h3 className="truncate font-semibold leading-tight">{company.name}</h3>
+                                            <p className="text-xs text-muted-foreground">{typeLabels[company.type]}</p>
+                                        </div>
+
+                                        <div className="space-y-1.5 text-xs text-muted-foreground">
+                                            {company.email && (
+                                                <div className="flex items-center gap-1.5 truncate">
+                                                    <Mail className="size-3 shrink-0" />
+                                                    <span className="truncate">{company.email}</span>
+                                                </div>
+                                            )}
+                                            {location && (
+                                                <div className="flex items-center gap-1.5 truncate">
+                                                    <MapPin className="size-3 shrink-0" />
+                                                    <span className="truncate">{location}</span>
+                                                </div>
+                                            )}
+                                            {company.website && (
+                                                <div className="flex items-center gap-1.5 truncate">
+                                                    <Globe className="size-3 shrink-0" />
+                                                    <span className="truncate">{company.website.replace(/^https?:\/\//, '')}</span>
+                                                </div>
+                                            )}
+                                            {company.creator && (
+                                                <div className="flex items-center gap-1.5 truncate">
+                                                    <User className="size-3 shrink-0" />
+                                                    <span className="truncate">{company.creator.name}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </CardContent>
+
+                                    <CardFooter className="gap-1 border-t p-2">
+                                        <Button asChild variant="ghost" size="sm" className="flex-1">
+                                            <Link href={show(company.id).url} prefetch>
+                                                <Eye className="size-3.5" />
+                                                Voir
+                                            </Link>
+                                        </Button>
+                                        <Button asChild variant="ghost" size="sm" className="flex-1">
+                                            <Link href={edit(company.id).url} prefetch>
+                                                <Edit className="size-3.5" />
+                                                Modifier
+                                            </Link>
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="flex-1 text-destructive hover:text-destructive"
+                                            onClick={() => setDeleteTarget(company)}
+                                        >
+                                            <Trash2 className="size-3.5" />
+                                            Supprimer
+                                        </Button>
+                                    </CardFooter>
+                                </Card>
+                            );
+                        })}
+                    </div>
+                )}
 
                 {/* Pagination */}
                 {companies.last_page > 1 && (
