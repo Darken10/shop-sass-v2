@@ -7,15 +7,14 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Product\ProductCategory>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Product\ProductTag>
  */
-class ProductCategoryFactory extends Factory
+class ProductTagFactory extends Factory
 {
     public function definition(): array
     {
         return [
-            'name' => fake()->word(),
-            'description' => fake()->sentence(),
+            'name' => fake()->unique()->word(),
             'company_id' => Company::factory(),
             'created_by' => User::factory(),
         ];

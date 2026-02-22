@@ -38,21 +38,25 @@ class RolePermissionSeeder extends Seeder
         });
         $gestionnaire->syncPermissions($gestionnairePerms);
 
-        // Caissier - gestion de caisse et commandes
+        // Caissier - gestion de caisse et commandes (PAS de création produits/catégories/tags)
         $caissier = Role::firstOrCreate(['name' => RoleEnum::Caissier->value]);
         $caissierPerms = $permissions->filter(function ($perm) {
             return str_contains($perm->name, 'cash') ||
                    str_contains($perm->name, 'transaction') ||
-                   str_contains($perm->name, 'order');
+                   str_contains($perm->name, 'order') ||
+                   $perm->name === 'read product' ||
+                   $perm->name === 'read product category' ||
+                   $perm->name === 'read product tag';
         });
         $caissier->syncPermissions($caissierPerms);
 
-        // Logisticien - gestion livraison et inventaire
+        // Logisticien - gestion livraison, inventaire, produits, catégories, tags
         $logisticien = Role::firstOrCreate(['name' => RoleEnum::Logisticien->value]);
         $logisticienPerms = $permissions->filter(function ($perm) {
             return str_contains($perm->name, 'delivery') ||
                    str_contains($perm->name, 'inventory') ||
-                   str_contains($perm->name, 'order');
+                   str_contains($perm->name, 'order') ||
+                   str_contains($perm->name, 'product');
         });
         $logisticien->syncPermissions($logisticienPerms);
 

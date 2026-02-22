@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Building2, Folder, LayoutGrid, Users } from 'lucide-react';
+import { BookOpen, Building2, Folder, LayoutGrid, Package, Users } from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -15,6 +15,7 @@ import {
 import type { NavItem } from '@/types';
 import AppLogo from './app-logo';
 import { index as companiesIndex } from '@/actions/App/Http/Controllers/Admin/CompanyController';
+import { index as productsIndex } from '@/actions/App/Http/Controllers/Admin/ProductController';
 import { index as usersIndex } from '@/actions/App/Http/Controllers/Admin/UserController';
 import { dashboard } from '@/routes';
 
@@ -32,8 +33,9 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
-    const { auth } = usePage<{ auth: { roles: string[] } }>().props;
+    const { auth } = usePage<{ auth: { roles: string[]; permissions: string[] } }>().props;
     const isAdmin = auth.roles?.some((r) => r === 'admin' || r === 'super admin') ?? false;
+    const canReadProducts = auth.permissions?.includes('read product') ?? false;
 
     const mainNavItems: NavItem[] = [
         {
@@ -41,6 +43,15 @@ export function AppSidebar() {
             href: dashboard(),
             icon: LayoutGrid,
         },
+        ...(canReadProducts
+            ? [
+                  {
+                      title: 'Produits',
+                      href: productsIndex().url,
+                      icon: Package,
+                  } satisfies NavItem,
+              ]
+            : []),
         ...(isAdmin
             ? [
                   {

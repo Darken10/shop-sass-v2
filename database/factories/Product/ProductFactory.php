@@ -2,6 +2,11 @@
 
 namespace Database\Factories\Product;
 
+use App\Enums\ProductStatus;
+use App\Enums\ProductUnity;
+use App\Models\Company\Company;
+use App\Models\Product\ProductCategory;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -9,15 +14,35 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class ProductFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         return [
-            //
+            'name' => fake()->words(3, true),
+            'code' => fake()->unique()->numerify('PRD-#####'),
+            'description' => fake()->sentence(),
+            'price' => fake()->randomFloat(2, 1, 1000),
+            'cost_price' => fake()->randomFloat(2, 1, 500),
+            'stock' => fake()->numberBetween(0, 500),
+            'stock_alert' => fake()->numberBetween(0, 20),
+            'unity' => fake()->randomElement(ProductUnity::cases()),
+            'status' => fake()->randomElement(ProductStatus::cases()),
+            'category_id' => ProductCategory::factory(),
+            'company_id' => Company::factory(),
+            'created_by' => User::factory(),
         ];
+    }
+
+    public function active(): static
+    {
+        return $this->state(fn () => [
+            'status' => ProductStatus::ACTIVE,
+        ]);
+    }
+
+    public function inactive(): static
+    {
+        return $this->state(fn () => [
+            'status' => ProductStatus::INACTIVE,
+        ]);
     }
 }

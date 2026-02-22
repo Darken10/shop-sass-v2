@@ -10,6 +10,18 @@ enum PermissionEnum: string
     case UpdateProduct = 'update product';
     case DeleteProduct = 'delete product';
 
+    // Catégories de produits
+    case CreateProductCategory = 'create product category';
+    case ReadProductCategory = 'read product category';
+    case UpdateProductCategory = 'update product category';
+    case DeleteProductCategory = 'delete product category';
+
+    // Tags de produits
+    case CreateProductTag = 'create product tag';
+    case ReadProductTag = 'read product tag';
+    case UpdateProductTag = 'update product tag';
+    case DeleteProductTag = 'delete product tag';
+
     // Commandes
     case CreateOrder = 'create order';
     case ReadOrder = 'read order';

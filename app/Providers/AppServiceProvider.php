@@ -3,7 +3,13 @@
 namespace App\Providers;
 
 use App\Models\Company\Company;
+use App\Models\Product\Product;
+use App\Models\Product\ProductCategory;
+use App\Models\Product\ProductTag;
 use App\Policies\CompanyPolicy;
+use App\Policies\ProductCategoryPolicy;
+use App\Policies\ProductPolicy;
+use App\Policies\ProductTagPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -36,6 +42,9 @@ class AppServiceProvider extends ServiceProvider
     protected function configurePolicies(): void
     {
         Gate::policy(Company::class, CompanyPolicy::class);
+        Gate::policy(Product::class, ProductPolicy::class);
+        Gate::policy(ProductCategory::class, ProductCategoryPolicy::class);
+        Gate::policy(ProductTag::class, ProductTagPolicy::class);
     }
 
     /**
