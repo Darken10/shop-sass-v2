@@ -1,5 +1,7 @@
-import { Building2, Globe, Mail, MapPin, Phone, Tag } from 'lucide-react';
+import { useCallback, useRef, useState } from 'react';
+import { Building2, Globe, Mail, MapPin, Phone, Tag, Upload, X } from 'lucide-react';
 import InputError from '@/components/input-error';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,6 +31,35 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function CompanyForm({ defaults = {}, types, statuses, errors }: Props) {
+    const [typeValue, setTypeValue] = useState<string>(defaults.type ?? '');
+    const [statusValue, setStatusValue] = useState<string>(defaults.status ?? 'active');
+    const [logoPreview, setLogoPreview] = useState<string | null>(defaults.logo ?? null);
+    const [isDragging, setIsDragging] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleFileChange = useCallback((file: File | null) => {
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onloadend = () => setLogoPreview(reader.result as string);
+            reader.readAsDataURL(file);
+        }
+    }, []);
+
+    const handleDrop = useCallback(
+        (e: React.DragEvent) => {
+            e.preventDefault();
+            setIsDragging(false);
+            const file = e.dataTransfer.files[0];
+            if (file) handleFileChange(file);
+        },
+        [handleFileChange],
+    );
+
+    const removeLogo = () => {
+        setLogoPreview(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
     return (
         <div className="grid gap-6 lg:grid-cols-3">
             {/* Main info */}
@@ -60,7 +91,7 @@ export default function CompanyForm({ defaults = {}, types, statuses, errors }: 
                                 <Label htmlFor="type">
                                     Type <span className="text-destructive">*</span>
                                 </Label>
-                                <Select name="type" defaultValue={defaults.type ?? ''}>
+                                <Select value={typeValue} onValueChange={setTypeValue}>
                                     <SelectTrigger id="type">
                                         <SelectValue placeholder="Choisir un type" />
                                     </SelectTrigger>
@@ -72,6 +103,7 @@ export default function CompanyForm({ defaults = {}, types, statuses, errors }: 
                                         ))}
                                     </SelectContent>
                                 </Select>
+                                <input type="hidden" name="type" value={typeValue} />
                                 <InputError message={errors.type} />
                             </div>
 
@@ -79,7 +111,7 @@ export default function CompanyForm({ defaults = {}, types, statuses, errors }: 
                                 <Label htmlFor="status">
                                     Statut <span className="text-destructive">*</span>
                                 </Label>
-                                <Select name="status" defaultValue={defaults.status ?? 'active'}>
+                                <Select value={statusValue} onValueChange={setStatusValue}>
                                     <SelectTrigger id="status">
                                         <SelectValue placeholder="Choisir un statut" />
                                     </SelectTrigger>
@@ -91,6 +123,7 @@ export default function CompanyForm({ defaults = {}, types, statuses, errors }: 
                                         ))}
                                     </SelectContent>
                                 </Select>
+                                <input type="hidden" name="status" value={statusValue} />
                                 <InputError message={errors.status} />
                             </div>
                         </div>
@@ -227,13 +260,59 @@ export default function CompanyForm({ defaults = {}, types, statuses, errors }: 
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="logo">URL du logo</Label>
-                            <Input
-                                id="logo"
-                                name="logo"
-                                type="url"
-                                defaultValue={defaults.logo ?? ''}
-                                placeholder="https://…/logo.png"
+                            <Label>Logo</Label>
+
+                            {logoPreview ? (
+                                <div className="relative overflow-hidden rounded-md border">
+                                    <img
+                                        src={logoPreview}
+                                        alt="Aperçu du logo"
+                                        className="h-36 w-full object-contain p-2"
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="icon"
+                                        className="absolute right-1 top-1 size-6"
+                                        onClick={removeLogo}
+                                    >
+                                        <X className="size-3" />
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div
+                                    role="button"
+                                    tabIndex={0}
+                                    className={`cursor-pointer rounded-md border-2 border-dashed p-6 text-center transition-colors ${
+                                        isDragging
+                                            ? 'border-primary bg-primary/5'
+                                            : 'border-muted-foreground/25 hover:border-muted-foreground/50'
+                                    }`}
+                                    onDrop={handleDrop}
+                                    onDragOver={(e) => {
+                                        e.preventDefault();
+                                        setIsDragging(true);
+                                    }}
+                                    onDragLeave={() => setIsDragging(false)}
+                                    onClick={() => fileInputRef.current?.click()}
+                                    onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}
+                                >
+                                    <Upload className="mx-auto mb-2 size-6 text-muted-foreground" />
+                                    <p className="text-sm text-muted-foreground">
+                                        Glisser une image ici ou{' '}
+                                        <span className="text-primary underline">parcourir</span>
+                                    </p>
+                                    <p className="mt-1 text-xs text-muted-foreground">PNG, JPG, GIF — 2 Mo max</p>
+                                </div>
+                            )}
+
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                name="logo_upload"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
                             />
                             <InputError message={errors.logo} />
                         </div>

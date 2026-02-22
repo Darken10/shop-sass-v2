@@ -43,8 +43,15 @@ class CompanyController extends Controller
     {
         $this->authorize('create', Company::class);
 
+        $logo = null;
+
+        if ($request->hasFile('logo_upload')) {
+            $logo = $request->file('logo_upload')->store('logos', 'public');
+        }
+
         $company = Company::create([
             ...$data->all(),
+            'logo' => $logo,
             'created_by' => $request->user()->id,
         ]);
 
@@ -72,11 +79,20 @@ class CompanyController extends Controller
         ]);
     }
 
-    public function update(CompanyData $data, Company $company): RedirectResponse
+    public function update(CompanyData $data, Company $company, Request $request): RedirectResponse
     {
         $this->authorize('update', $company);
 
-        $company->update($data->all());
+        $logo = $company->logo;
+
+        if ($request->hasFile('logo_upload')) {
+            $logo = $request->file('logo_upload')->store('logos', 'public');
+        }
+
+        $company->update([
+            ...$data->all(),
+            'logo' => $logo,
+        ]);
 
         return to_route('admin.companies.show', $company)
             ->with('success', 'Entreprise mise à jour avec succès.');
