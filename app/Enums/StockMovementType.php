@@ -9,19 +9,21 @@ enum StockMovementType: string
 {
     case PurchaseEntry = 'purchase_entry';
     case SupplierReturn = 'supplier_return';
-    case StoreTransfer = 'store_transfer';
+    case WarehouseToShop = 'warehouse_to_shop';
+    case WarehouseToWarehouse = 'warehouse_to_warehouse';
+    case ShopToCustomer = 'shop_to_customer';
     case Loss = 'loss';
-    case InternalTransfer = 'internal_transfer';
     case Adjustment = 'adjustment';
 
     public function label(): string
     {
         return match ($this) {
-            self::PurchaseEntry => 'Achat fournisseur',
+            self::PurchaseEntry => 'Achat fournisseur → Entrepôt',
             self::SupplierReturn => 'Retour fournisseur',
-            self::StoreTransfer => 'Transfert vers magasin',
-            self::Loss => 'Perte / casse',
-            self::InternalTransfer => 'Transfert interne',
+            self::WarehouseToShop => 'Transfert Entrepôt → Magasin',
+            self::WarehouseToWarehouse => 'Transfert Entrepôt → Entrepôt',
+            self::ShopToCustomer => 'Vente Magasin → Client',
+            self::Loss => 'Perte / Casse',
             self::Adjustment => 'Ajustement',
         };
     }
@@ -33,7 +35,12 @@ enum StockMovementType: string
 
     public function isExit(): bool
     {
-        return in_array($this, [self::StoreTransfer, self::Loss]);
+        return in_array($this, [self::WarehouseToShop, self::ShopToCustomer, self::Loss]);
+    }
+
+    public function isTransfer(): bool
+    {
+        return in_array($this, [self::WarehouseToShop, self::WarehouseToWarehouse]);
     }
 
     public static function all(): array

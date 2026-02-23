@@ -1,6 +1,7 @@
 import { Form, Head } from '@inertiajs/react';
 import { ArrowLeft, ArrowLeftRight, Box, Warehouse as WarehouseIcon } from 'lucide-react';
 import { useState } from 'react';
+import StockMovementController, { index as movementsIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/StockMovementController';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import StockMovementController, { index as movementsIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/StockMovementController';
 
 type Warehouse = { id: string; name: string; code: string };
 type Product = { id: string; name: string; code: string };

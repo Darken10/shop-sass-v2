@@ -1,10 +1,10 @@
 import { Form, Head } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
+import ProductController, { index as productsIndex } from '@/actions/App/Http/Controllers/Admin/ProductController';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import ProductController, { index as productsIndex } from '@/actions/App/Http/Controllers/Admin/ProductController';
 import ProductForm from './_form';
 
 type Category = { id: string; name: string };

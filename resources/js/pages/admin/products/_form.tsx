@@ -1,5 +1,7 @@
 import { DollarSign, Hash, Layers, Package, Plus, Tag, Upload, X } from 'lucide-react';
 import { useCallback, useRef, useState } from 'react';
+import { store as storeCategoryAction } from '@/actions/App/Http/Controllers/Admin/ProductCategoryController';
+import { store as storeTagAction } from '@/actions/App/Http/Controllers/Admin/ProductTagController';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,8 +17,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { store as storeCategoryAction } from '@/actions/App/Http/Controllers/Admin/ProductCategoryController';
-import { store as storeTagAction } from '@/actions/App/Http/Controllers/Admin/ProductTagController';
 
 type Category = { id: string; name: string };
 type ProductTag = { id: string; name: string };

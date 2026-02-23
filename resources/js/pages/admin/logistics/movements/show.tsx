@@ -1,12 +1,12 @@
 import { Head } from '@inertiajs/react';
 import { ArrowLeft, ArrowLeftRight, Banknote, Hash, User, Warehouse as WarehouseIcon } from 'lucide-react';
+import { index as movementsIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/StockMovementController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { index as movementsIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/StockMovementController';
 
 type Movement = {
     id: string;

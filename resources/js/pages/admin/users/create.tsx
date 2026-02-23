@@ -1,10 +1,10 @@
 import { Form, Head } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
+import UserController, { index as usersIndex } from '@/actions/App/Http/Controllers/Admin/UserController';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import UserController, { index as usersIndex } from '@/actions/App/Http/Controllers/Admin/UserController';
 import UserForm from './_form';
 
 type CompanyOption = { id: string; name: string };

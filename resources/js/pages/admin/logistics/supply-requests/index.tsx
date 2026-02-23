@@ -1,12 +1,12 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { ClipboardList, Eye, Plus } from 'lucide-react';
+import { index as requestsIndex, create, show } from '@/actions/App/Http/Controllers/Admin/Logistics/SupplyRequestController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { index as requestsIndex, create, show } from '@/actions/App/Http/Controllers/Admin/Logistics/SupplyRequestController';
 
 type SupplyRequest = {
     id: string;

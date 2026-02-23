@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Eye, Fuel, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { index as fuelLogsIndex, create, show } from '@/actions/App/Http/Controllers/Admin/Logistics/FuelLogController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,7 +15,6 @@ import {
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { index as fuelLogsIndex, create, show } from '@/actions/App/Http/Controllers/Admin/Logistics/FuelLogController';
 
 type FuelLog = {
     id: string;

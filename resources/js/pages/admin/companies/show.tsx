@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { ArrowLeft, Building2, Edit, Globe, Mail, MapPin, Phone, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { destroy, edit, index as companiesIndex } from '@/actions/App/Http/Controllers/Admin/CompanyController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +16,6 @@ import {
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { destroy, edit, index as companiesIndex } from '@/actions/App/Http/Controllers/Admin/CompanyController';
 
 const statusConfig: Record<App.Enums.CompanyStatusEnum, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
     active: { label: 'Actif', variant: 'default' },

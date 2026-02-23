@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { ArrowLeft, DollarSign, Edit, Hash, Layers, Package, Tag, Trash2, User } from 'lucide-react';
 import { useState } from 'react';
+import { index as productsIndex, edit, destroy } from '@/actions/App/Http/Controllers/Admin/ProductController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +16,6 @@ import {
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { index as productsIndex, edit, destroy } from '@/actions/App/Http/Controllers/Admin/ProductController';
 
 type Category = { id: string; name: string };
 type ProductTag = { id: string; name: string };

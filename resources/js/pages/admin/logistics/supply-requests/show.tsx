@@ -1,6 +1,7 @@
 import { Head, router } from '@inertiajs/react';
 import { ArrowLeft, Banknote, Check, ClipboardList, Hash, Package, Truck, User, Warehouse as WarehouseIcon, X } from 'lucide-react';
 import { useState } from 'react';
+import { index as requestsIndex, approve, deliver, reject } from '@/actions/App/Http/Controllers/Admin/Logistics/SupplyRequestController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +16,6 @@ import {
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { index as requestsIndex, approve, deliver, reject } from '@/actions/App/Http/Controllers/Admin/Logistics/SupplyRequestController';
 
 type Item = {
     id: string;

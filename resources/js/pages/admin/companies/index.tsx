@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Building2, Edit, Eye, Globe, Mail, MapPin, Plus, Trash2, User } from 'lucide-react';
 import { useState } from 'react';
+import { index as companiesIndex, create, destroy, edit, show } from '@/actions/App/Http/Controllers/Admin/CompanyController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -15,7 +16,6 @@ import {
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { index as companiesIndex, create, destroy, edit, show } from '@/actions/App/Http/Controllers/Admin/CompanyController';
 
 type Creator = { id: string; name: string };
 

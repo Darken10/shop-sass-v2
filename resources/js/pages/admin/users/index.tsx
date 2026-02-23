@@ -1,6 +1,13 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Building2, Edit, Mail, MailPlus, Plus, Shield, Trash2, UserCheck, Users } from 'lucide-react';
 import { useState } from 'react';
+import {
+    index as usersIndex,
+    create,
+    destroy,
+    edit,
+    resendActivation,
+} from '@/actions/App/Http/Controllers/Admin/UserController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -15,13 +22,6 @@ import {
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import {
-    index as usersIndex,
-    create,
-    destroy,
-    edit,
-    resendActivation,
-} from '@/actions/App/Http/Controllers/Admin/UserController';
 
 type UserEntry = {
     id: string;

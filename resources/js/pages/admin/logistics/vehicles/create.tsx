@@ -1,10 +1,10 @@
 import { Form, Head } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
+import VehicleController, { index as vehiclesIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/VehicleController';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import VehicleController, { index as vehiclesIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/VehicleController';
 import VehicleForm from './_form';
 
 const breadcrumbs: BreadcrumbItem[] = [

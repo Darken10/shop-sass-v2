@@ -14,10 +14,20 @@ import {
     Users,
     Warehouse,
 } from 'lucide-react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { index as companiesIndex } from '@/actions/App/Http/Controllers/Admin/CompanyController';
+import { index as fuelLogsIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/FuelLogController';
+import { index as chargesIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/LogisticChargeController';
+import { index as movementsIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/StockMovementController';
+import { index as supplyRequestsIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/SupplyRequestController';
+import { index as vehiclesIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/VehicleController';
+import { index as warehousesIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/WarehouseController';
+import { index as stocksIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/WarehouseStockController';
+import { index as productsIndex } from '@/actions/App/Http/Controllers/Admin/ProductController';
+import { index as usersIndex } from '@/actions/App/Http/Controllers/Admin/UserController';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
     Sidebar,
     SidebarContent,
@@ -33,19 +43,9 @@ import {
     SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/hooks/use-current-url';
+import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 import AppLogo from './app-logo';
-import { index as companiesIndex } from '@/actions/App/Http/Controllers/Admin/CompanyController';
-import { index as productsIndex } from '@/actions/App/Http/Controllers/Admin/ProductController';
-import { index as usersIndex } from '@/actions/App/Http/Controllers/Admin/UserController';
-import { index as warehousesIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/WarehouseController';
-import { index as stocksIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/WarehouseStockController';
-import { index as movementsIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/StockMovementController';
-import { index as supplyRequestsIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/SupplyRequestController';
-import { index as vehiclesIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/VehicleController';
-import { index as fuelLogsIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/FuelLogController';
-import { index as chargesIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/LogisticChargeController';
-import { dashboard } from '@/routes';
 
 const footerNavItems: NavItem[] = [
     {
