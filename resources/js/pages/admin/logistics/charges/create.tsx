@@ -89,7 +89,6 @@ export default function ChargeCreate({ chargeTypes }: { chargeTypes: ChargeType[
                                                     ))}
                                                 </SelectContent>
                                             </Select>
-                                            <input type="hidden" name="type" id="type_hidden" />
                                             <InputError message={errors.type} />
                                         </div>
                                         <div className="space-y-2">

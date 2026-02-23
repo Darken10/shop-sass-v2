@@ -68,7 +68,6 @@ export default function FuelLogCreate({ vehicles }: { vehicles: Vehicle[] }) {
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        <input type="hidden" name="vehicle_id" id="vehicle_id_hidden" />
                                         <InputError message={errors.vehicle_id} />
                                     </div>
 

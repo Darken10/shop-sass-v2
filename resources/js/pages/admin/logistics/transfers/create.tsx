@@ -176,7 +176,7 @@ export default function TransfersCreate({ warehouses, shops, products, vehicles 
                                         {(vehicles?.length ?? 0) > 0 && (
                                             <div className="grid gap-2">
                                                 <Label htmlFor="vehicle_id">Véhicule</Label>
-                                                <Select value={vehicleId} onValueChange={setVehicleId}>
+                                                <Select value={vehicleId || undefined} onValueChange={setVehicleId}>
                                                     <SelectTrigger id="vehicle_id">
                                                         <SelectValue placeholder="Sélectionner un véhicule (optionnel)" />
                                                     </SelectTrigger>
