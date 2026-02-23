@@ -14,7 +14,7 @@ trait BelongsToCompany
             $user = auth()->user();
 
             if ($user && $user->company_id) {
-                $builder->where($builder->getModel()->getTable() . '.company_id', $user->company_id);
+                $builder->where($builder->getModel()->getTable().'.company_id', $user->company_id);
             }
         });
 

@@ -47,7 +47,7 @@ class CompanyFactory extends Factory
         ];
     }
 
-     public function active()
+    public function active()
     {
         return $this->state(fn () => [
             'status' => CompanyStatusEnum::Active->value,
@@ -61,4 +61,3 @@ class CompanyFactory extends Factory
         ]);
     }
 }
-
