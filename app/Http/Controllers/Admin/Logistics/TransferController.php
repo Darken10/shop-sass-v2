@@ -3,16 +3,21 @@
 namespace App\Http\Controllers\Admin\Logistics;
 
 use App\Data\Logistics\TransferData;
+use App\Enums\StockMovementType;
 use App\Enums\TransferStatus;
 use App\Enums\TransferType;
 use App\Http\Controllers\Controller;
 use App\Models\Logistics\Shop;
+use App\Models\Logistics\ShopStock;
+use App\Models\Logistics\StockMovement;
 use App\Models\Logistics\Transfer;
 use App\Models\Logistics\TransferItem;
 use App\Models\Logistics\Vehicle;
 use App\Models\Logistics\Warehouse;
+use App\Models\Logistics\WarehouseStock;
 use App\Models\Product\Product;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -128,10 +133,76 @@ class TransferController extends Controller
     {
         $this->authorize('update', $transfer);
 
-        $transfer->update([
-            'status' => TransferStatus::Delivered,
-            'delivered_at' => now(),
-        ]);
+        $transfer->load('items.product');
+
+        DB::transaction(function () use ($transfer) {
+            foreach ($transfer->items as $item) {
+                $qty = $item->quantity_requested;
+
+                // Déduire du stock de l'entrepôt source
+                $sourceStock = WarehouseStock::withoutGlobalScopes()
+                    ->where('product_id', $item->product_id)
+                    ->where('warehouse_id', $transfer->source_warehouse_id)
+                    ->first();
+
+                if ($sourceStock) {
+                    $sourceStock->decrement('quantity', min($qty, $sourceStock->quantity));
+                }
+
+                // Créditer la destination
+                if ($transfer->type === TransferType::WarehouseToShop && $transfer->destination_shop_id) {
+                    $destStock = ShopStock::withoutGlobalScopes()
+                        ->firstOrCreate(
+                            [
+                                'product_id' => $item->product_id,
+                                'shop_id' => $transfer->destination_shop_id,
+                            ],
+                            [
+                                'company_id' => $transfer->company_id,
+                                'quantity' => 0,
+                            ]
+                        );
+                    $destStock->increment('quantity', $qty);
+                } elseif ($transfer->type === TransferType::WarehouseToWarehouse && $transfer->destination_warehouse_id) {
+                    $destStock = WarehouseStock::withoutGlobalScopes()
+                        ->firstOrCreate(
+                            [
+                                'product_id' => $item->product_id,
+                                'warehouse_id' => $transfer->destination_warehouse_id,
+                            ],
+                            [
+                                'company_id' => $transfer->company_id,
+                                'quantity' => 0,
+                            ]
+                        );
+                    $destStock->increment('quantity', $qty);
+                }
+
+                // Traçabilité via mouvement de stock
+                StockMovement::create([
+                    'reference' => 'MOV-'.strtoupper(Str::random(8)),
+                    'type' => $transfer->type === TransferType::WarehouseToShop
+                        ? StockMovementType::WarehouseToShop
+                        : StockMovementType::WarehouseToWarehouse,
+                    'quantity' => $qty,
+                    'reason' => "Transfert {$transfer->reference}",
+                    'product_id' => $item->product_id,
+                    'source_warehouse_id' => $transfer->source_warehouse_id,
+                    'destination_warehouse_id' => $transfer->destination_warehouse_id,
+                    'destination_shop_id' => $transfer->destination_shop_id,
+                    'transfer_id' => $transfer->id,
+                    'company_id' => $transfer->company_id,
+                    'created_by' => auth()->id(),
+                ]);
+
+                $item->update(['quantity_delivered' => $qty]);
+            }
+
+            $transfer->update([
+                'status' => TransferStatus::Delivered,
+                'delivered_at' => now(),
+            ]);
+        });
 
         return back()->with('success', 'Transfert livré avec succès.');
     }
