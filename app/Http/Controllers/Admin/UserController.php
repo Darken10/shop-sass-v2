@@ -129,6 +129,8 @@ class UserController extends Controller
 
     public function destroy(User $user): RedirectResponse
     {
+        abort_if($user->id === auth()->id(), 403, 'Vous ne pouvez pas supprimer votre propre compte.');
+
         $this->authorize('delete', $user);
 
         $user->delete();

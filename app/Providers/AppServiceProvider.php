@@ -70,12 +70,14 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Register gate "before" callback so admins bypass all checks.
+     * Register gate "before" callback so super admins bypass all checks.
+     * Admins get all permissions via role assignment, and policies
+     * enforce company-scoping for them.
      */
     protected function configureGates(): void
     {
         Gate::before(function ($user, $ability) {
-            if ($user->isSuperAdmin() || $user->isAdmin()) {
+            if ($user->isSuperAdmin()) {
                 return true;
             }
         });
