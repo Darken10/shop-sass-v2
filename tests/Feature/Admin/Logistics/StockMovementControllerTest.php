@@ -102,7 +102,7 @@ it('creates a purchase entry movement and increments stock', function () {
 it('creates an exit movement and decrements stock', function () {
     actingAs($this->admin)
         ->post('/admin/logistics/movements', [
-            'type' => StockMovementType::StoreTransfer->value,
+            'type' => StockMovementType::WarehouseToShop->value,
             'quantity' => 30,
             'reason' => 'Transfert magasin',
             'product_id' => $this->product->id,
@@ -123,7 +123,7 @@ it('creates an exit movement and decrements stock', function () {
 it('creates an internal transfer and updates both warehouse stocks', function () {
     actingAs($this->admin)
         ->post('/admin/logistics/movements', [
-            'type' => StockMovementType::InternalTransfer->value,
+            'type' => StockMovementType::WarehouseToWarehouse->value,
             'quantity' => 25,
             'reason' => 'Transfert interne',
             'product_id' => $this->product->id,

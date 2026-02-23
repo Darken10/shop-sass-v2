@@ -122,7 +122,7 @@ class SupplyRequestController extends Controller
         foreach ($supplyRequest->items as $item) {
             $movement = StockMovement::create([
                 'reference' => 'MOV-'.strtoupper(Str::random(8)),
-                'type' => StockMovementType::InternalTransfer,
+                'type' => StockMovementType::WarehouseToWarehouse,
                 'quantity' => $item->quantity_requested,
                 'reason' => "Approvisionnement {$supplyRequest->reference}",
                 'product_id' => $item->product_id,

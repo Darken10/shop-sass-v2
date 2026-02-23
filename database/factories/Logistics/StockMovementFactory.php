@@ -41,14 +41,14 @@ class StockMovementFactory extends Factory
     public function exit(): static
     {
         return $this->state(fn () => [
-            'type' => StockMovementType::StoreTransfer,
+            'type' => StockMovementType::WarehouseToShop,
         ]);
     }
 
-    public function internalTransfer(): static
+    public function warehouseToWarehouse(): static
     {
         return $this->state(fn () => [
-            'type' => StockMovementType::InternalTransfer,
+            'type' => StockMovementType::WarehouseToWarehouse,
             'destination_warehouse_id' => Warehouse::factory(),
         ]);
     }
