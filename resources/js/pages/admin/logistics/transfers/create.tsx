@@ -173,7 +173,7 @@ export default function TransfersCreate({ warehouses, shops, products, vehicles 
                                             )}
                                         </div>
 
-                                        {vehicles.length > 0 && (
+                                        {(vehicles?.length ?? 0) > 0 && (
                                             <div className="grid gap-2">
                                                 <Label htmlFor="vehicle_id">Véhicule</Label>
                                                 <Select value={vehicleId} onValueChange={setVehicleId}>

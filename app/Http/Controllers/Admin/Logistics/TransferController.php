@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Logistics\Shop;
 use App\Models\Logistics\Transfer;
 use App\Models\Logistics\TransferItem;
+use App\Models\Logistics\Vehicle;
 use App\Models\Logistics\Warehouse;
 use App\Models\Product\Product;
 use Illuminate\Http\RedirectResponse;
@@ -46,6 +47,7 @@ class TransferController extends Controller
             'warehouses' => Warehouse::query()->select(['id', 'name', 'code'])->orderBy('name')->get(),
             'shops' => Shop::query()->select(['id', 'name', 'code'])->orderBy('name')->get(),
             'products' => Product::query()->select(['id', 'name', 'code'])->orderBy('name')->get(),
+            'vehicles' => Vehicle::query()->select(['id', 'name', 'registration_number'])->orderBy('name')->get(),
             'transferTypes' => TransferType::cases(),
         ]);
     }
