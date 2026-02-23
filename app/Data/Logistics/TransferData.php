@@ -8,6 +8,7 @@ use Spatie\LaravelData\Attributes\Validation\Enum;
 use Spatie\LaravelData\Attributes\Validation\Min;
 use Spatie\LaravelData\Attributes\Validation\Nullable;
 use Spatie\LaravelData\Attributes\Validation\Required;
+use Spatie\LaravelData\Attributes\Validation\Sometimes;
 use Spatie\LaravelData\Attributes\Validation\StringType;
 use Spatie\LaravelData\Attributes\Validation\Uuid;
 use Spatie\LaravelData\Data;
@@ -32,7 +33,7 @@ class TransferData extends Data
         #[Nullable, Uuid]
         public ?string $destination_shop_id,
 
-        #[Nullable, Uuid]
+        #[Sometimes, Nullable, Uuid]
         public ?string $vehicle_id,
 
         /** @var array<int, mixed> */

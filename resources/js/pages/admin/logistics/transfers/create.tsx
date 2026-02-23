@@ -188,7 +188,7 @@ export default function TransfersCreate({ warehouses, shops, products, vehicles 
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
-                                                <input type="hidden" name="vehicle_id" value={vehicleId} />
+                                                {vehicleId && <input type="hidden" name="vehicle_id" value={vehicleId} />}
                                                 <InputError message={errors.vehicle_id} />
                                             </div>
                                         )}
