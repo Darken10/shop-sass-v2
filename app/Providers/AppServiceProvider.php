@@ -47,6 +47,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configurePolicies();
+        $this->configureGates();
         $this->configureDefaults();
     }
 
@@ -66,6 +67,18 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Vehicle::class, VehiclePolicy::class);
         Gate::policy(FuelLog::class, FuelLogPolicy::class);
         Gate::policy(LogisticCharge::class, LogisticChargePolicy::class);
+    }
+
+    /**
+     * Register gate "before" callback so admins bypass all checks.
+     */
+    protected function configureGates(): void
+    {
+        Gate::before(function ($user, $ability) {
+            if ($user->isSuperAdmin() || $user->isAdmin()) {
+                return true;
+            }
+        });
     }
 
     /**
