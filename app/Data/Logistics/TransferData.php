@@ -35,7 +35,7 @@ class TransferData extends Data
         #[Nullable, Uuid]
         public ?string $vehicle_id,
 
-        /** @var array<int, array{product_id: string, quantity_requested: int}> */
+        /** @var array<int, mixed> */
         #[Required, ArrayType, Min(1)]
         public array $items,
     ) {}
