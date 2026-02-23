@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin\Logistics;
 use App\Data\Logistics\StockMovementData;
 use App\Enums\StockMovementType;
 use App\Http\Controllers\Controller;
+use App\Models\Logistics\Shop;
 use App\Models\Logistics\StockMovement;
+use App\Models\Logistics\Supplier;
 use App\Models\Logistics\Warehouse;
 use App\Models\Logistics\WarehouseStock;
 use App\Models\Product\Product;
@@ -42,6 +44,8 @@ class StockMovementController extends Controller
 
         return Inertia::render('admin/logistics/movements/create', [
             'warehouses' => Warehouse::query()->select(['id', 'name', 'code'])->orderBy('name')->get(),
+            'shops' => Shop::query()->select(['id', 'name', 'code'])->orderBy('name')->get(),
+            'suppliers' => Supplier::query()->select(['id', 'name', 'code'])->orderBy('name')->get(),
             'products' => Product::query()->select(['id', 'name', 'code'])->orderBy('name')->get(),
             'movementTypes' => StockMovementType::cases(),
         ]);
@@ -103,7 +107,7 @@ class StockMovementController extends Controller
             );
         }
 
-        if ($movement->type === StockMovementType::InternalTransfer) {
+        if ($movement->type === StockMovementType::WarehouseToWarehouse) {
             if ($movement->source_warehouse_id) {
                 $this->decrementStock(
                     $movement->product_id,
