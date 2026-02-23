@@ -1,9 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
-    BookOpen,
     Building2,
     Coins,
-    Folder,
     Fuel,
     LayoutGrid,
     Package,

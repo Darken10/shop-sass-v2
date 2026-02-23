@@ -20,7 +20,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 type Category = { id: string; name: string };
 type ProductTag = { id: string; name: string };
-type EnumOption = { value: string; name?: string; label?: string };
 
 const STATUS_OPTIONS = [
     { value: 'active', label: 'Actif' },

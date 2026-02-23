@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { Form } from '@inertiajs/react';
-import { ArrowLeft, Calendar, Fuel, Hash, StickyNote } from 'lucide-react';
+import { ArrowLeft, Fuel, Hash } from 'lucide-react';
 import FuelLogController, { index as fuelLogsIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/FuelLogController';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';

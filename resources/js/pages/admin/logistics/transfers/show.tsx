@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { ArrowLeft, Calendar, Check, Hash, Package, Replace, Ship, Store, Truck, User, Warehouse as WarehouseIcon, X } from 'lucide-react';
+import { ArrowLeft, Calendar, Check, Hash, Package, Replace, Ship, Truck, User, Warehouse as WarehouseIcon, X } from 'lucide-react';
 import { useState } from 'react';
 import { index as transfersIndex, approve, ship, deliver, reject } from '@/actions/App/Http/Controllers/Admin/Logistics/TransferController';
 import { Badge } from '@/components/ui/badge';

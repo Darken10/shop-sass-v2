@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { Coins, Eye, Plus } from 'lucide-react';
-import { index as chargesIndex, create, show } from '@/actions/App/Http/Controllers/Admin/Logistics/LogisticChargeController';
+import { create, show } from '@/actions/App/Http/Controllers/Admin/Logistics/LogisticChargeController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';

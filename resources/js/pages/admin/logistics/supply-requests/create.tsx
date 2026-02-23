@@ -1,5 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
-import { ArrowLeft, ClipboardList, MinusCircle, Package, Plus, Warehouse as WarehouseIcon } from 'lucide-react';
+import { ArrowLeft, MinusCircle, Package, Plus, Warehouse as WarehouseIcon } from 'lucide-react';
 import { useState } from 'react';
 import SupplyRequestController, { index as requestsIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/SupplyRequestController';
 import InputError from '@/components/input-error';

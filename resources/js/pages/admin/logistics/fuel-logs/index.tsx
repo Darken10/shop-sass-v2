@@ -1,17 +1,8 @@
-import { Head, Link, router } from '@inertiajs/react';
-import { Eye, Fuel, Plus, Trash2 } from 'lucide-react';
-import { useState } from 'react';
-import { index as fuelLogsIndex, create, show } from '@/actions/App/Http/Controllers/Admin/Logistics/FuelLogController';
+import { Head, Link } from '@inertiajs/react';
+import { Eye, Fuel, Plus } from 'lucide-react';
+import { create, show } from '@/actions/App/Http/Controllers/Admin/Logistics/FuelLogController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -42,10 +33,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function FuelLogIndex({ fuelLogs }: { fuelLogs: PaginatedFuelLogs }) {
-    const [deleteId, setDeleteId] = useState<string | null>(null);
-    const [isDeleting, setIsDeleting] = useState(false);
-    const logToDelete = fuelLogs.data.find((l) => l.id === deleteId);
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Ravitaillements" />

@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, Edit, Fuel, Gauge, Hash, Trash2, Truck, User, Weight } from 'lucide-react';
+import { ArrowLeft, Edit, Fuel, Hash, Trash2, Truck, User } from 'lucide-react';
 import { useState } from 'react';
 import { index as vehiclesIndex, edit, destroy } from '@/actions/App/Http/Controllers/Admin/Logistics/VehicleController';
 import { Badge } from '@/components/ui/badge';
