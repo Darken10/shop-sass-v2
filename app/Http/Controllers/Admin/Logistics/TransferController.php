@@ -55,7 +55,7 @@ class TransferController extends Controller
         $this->authorize('create', Transfer::class);
 
         $transfer = Transfer::create([
-            'reference' => 'TRF-' . strtoupper(Str::random(8)),
+            'reference' => 'TRF-'.strtoupper(Str::random(8)),
             'type' => $data->type,
             'status' => TransferStatus::Pending,
             'notes' => $data->notes,
