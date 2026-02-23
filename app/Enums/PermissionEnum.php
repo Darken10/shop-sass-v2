@@ -57,6 +57,18 @@ enum PermissionEnum: string
     case UpdateWarehouse = 'update warehouse';
     case DeleteWarehouse = 'delete warehouse';
 
+    // Magasins / Points de vente
+    case CreateShop = 'create shop';
+    case ReadShop = 'read shop';
+    case UpdateShop = 'update shop';
+    case DeleteShop = 'delete shop';
+
+    // Fournisseurs
+    case CreateSupplier = 'create supplier';
+    case ReadSupplier = 'read supplier';
+    case UpdateSupplier = 'update supplier';
+    case DeleteSupplier = 'delete supplier';
+
     // Stocks
     case CreateStock = 'create stock';
     case ReadStock = 'read stock';
@@ -72,6 +84,12 @@ enum PermissionEnum: string
     case ReadSupplyRequest = 'read supply request';
     case UpdateSupplyRequest = 'update supply request';
     case ApproveSupplyRequest = 'approve supply request';
+
+    // Transferts
+    case CreateTransfer = 'create transfer';
+    case ReadTransfer = 'read transfer';
+    case UpdateTransfer = 'update transfer';
+    case ApproveTransfer = 'approve transfer';
 
     // Engins / Véhicules
     case CreateVehicle = 'create vehicle';

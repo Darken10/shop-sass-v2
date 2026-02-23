@@ -58,8 +58,11 @@ class RolePermissionSeeder extends Seeder
                    str_contains($perm->name, 'order') ||
                    str_contains($perm->name, 'product') ||
                    str_contains($perm->name, 'warehouse') ||
+                   str_contains($perm->name, 'shop') ||
+                   str_contains($perm->name, 'supplier') ||
                    str_contains($perm->name, 'stock') ||
                    str_contains($perm->name, 'supply request') ||
+                   str_contains($perm->name, 'transfer') ||
                    str_contains($perm->name, 'vehicle') ||
                    str_contains($perm->name, 'fuel log') ||
                    str_contains($perm->name, 'logistic charge');
@@ -72,8 +75,10 @@ class RolePermissionSeeder extends Seeder
             return str_contains($perm->name, 'inventory') ||
                    str_contains($perm->name, 'product') ||
                    str_contains($perm->name, 'warehouse') ||
+                   str_contains($perm->name, 'shop') ||
                    str_contains($perm->name, 'stock') ||
-                   str_contains($perm->name, 'supply request');
+                   str_contains($perm->name, 'supply request') ||
+                   str_contains($perm->name, 'transfer');
         });
         $magasinier->syncPermissions($magasinierPerms);
     }

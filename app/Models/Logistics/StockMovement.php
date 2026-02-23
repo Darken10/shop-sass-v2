@@ -32,6 +32,10 @@ class StockMovement extends Model
         'source_warehouse_id',
         'destination_warehouse_id',
         'supply_request_id',
+        'supplier_id',
+        'source_shop_id',
+        'destination_shop_id',
+        'transfer_id',
         'company_id',
         'created_by',
     ];
@@ -62,6 +66,26 @@ class StockMovement extends Model
     public function supplyRequest(): BelongsTo
     {
         return $this->belongsTo(SupplyRequest::class);
+    }
+
+    public function supplier(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class);
+    }
+
+    public function sourceShop(): BelongsTo
+    {
+        return $this->belongsTo(Shop::class, 'source_shop_id');
+    }
+
+    public function destinationShop(): BelongsTo
+    {
+        return $this->belongsTo(Shop::class, 'destination_shop_id');
+    }
+
+    public function transfer(): BelongsTo
+    {
+        return $this->belongsTo(Transfer::class);
     }
 
     public function createdBy(): BelongsTo
