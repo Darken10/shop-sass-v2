@@ -22,3 +22,4 @@ Route::post('activate/{user}', [ActivateAccountController::class, 'store'])
 
 require __DIR__.'/settings.php';
 require __DIR__.'/admin.php';
+require __DIR__.'/logistics.php';

@@ -51,6 +51,42 @@ enum PermissionEnum: string
     case ViewReports = 'view reports';
     case ViewSales = 'view sales';
 
+    // Entrepôts
+    case CreateWarehouse = 'create warehouse';
+    case ReadWarehouse = 'read warehouse';
+    case UpdateWarehouse = 'update warehouse';
+    case DeleteWarehouse = 'delete warehouse';
+
+    // Stocks
+    case CreateStock = 'create stock';
+    case ReadStock = 'read stock';
+    case UpdateStock = 'update stock';
+    case DeleteStock = 'delete stock';
+
+    // Mouvements de stock
+    case CreateStockMovement = 'create stock movement';
+    case ReadStockMovement = 'read stock movement';
+
+    // Demandes d'approvisionnement
+    case CreateSupplyRequest = 'create supply request';
+    case ReadSupplyRequest = 'read supply request';
+    case UpdateSupplyRequest = 'update supply request';
+    case ApproveSupplyRequest = 'approve supply request';
+
+    // Engins / Véhicules
+    case CreateVehicle = 'create vehicle';
+    case ReadVehicle = 'read vehicle';
+    case UpdateVehicle = 'update vehicle';
+    case DeleteVehicle = 'delete vehicle';
+
+    // Carburant
+    case CreateFuelLog = 'create fuel log';
+    case ReadFuelLog = 'read fuel log';
+
+    // Manutention / Charges logistiques
+    case CreateLogisticCharge = 'create logistic charge';
+    case ReadLogisticCharge = 'read logistic charge';
+
     public static function all(): array
     {
         return array_map(fn (self $permission) => $permission->value, self::cases());

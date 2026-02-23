@@ -50,21 +50,30 @@ class RolePermissionSeeder extends Seeder
         });
         $caissier->syncPermissions($caissierPerms);
 
-        // Logisticien - gestion livraison, inventaire, produits, catégories, tags
+        // Logisticien - gestion livraison, inventaire, produits, catégories, tags, logistique
         $logisticien = Role::firstOrCreate(['name' => RoleEnum::Logisticien->value]);
         $logisticienPerms = $permissions->filter(function ($perm) {
             return str_contains($perm->name, 'delivery') ||
                    str_contains($perm->name, 'inventory') ||
                    str_contains($perm->name, 'order') ||
-                   str_contains($perm->name, 'product');
+                   str_contains($perm->name, 'product') ||
+                   str_contains($perm->name, 'warehouse') ||
+                   str_contains($perm->name, 'stock') ||
+                   str_contains($perm->name, 'supply request') ||
+                   str_contains($perm->name, 'vehicle') ||
+                   str_contains($perm->name, 'fuel log') ||
+                   str_contains($perm->name, 'logistic charge');
         });
         $logisticien->syncPermissions($logisticienPerms);
 
-        // Magasinier - gestion inventaire
+        // Magasinier - gestion inventaire, stocks, mouvements
         $magasinier = Role::firstOrCreate(['name' => RoleEnum::Magasinier->value]);
         $magasinierPerms = $permissions->filter(function ($perm) {
             return str_contains($perm->name, 'inventory') ||
-                   str_contains($perm->name, 'product');
+                   str_contains($perm->name, 'product') ||
+                   str_contains($perm->name, 'warehouse') ||
+                   str_contains($perm->name, 'stock') ||
+                   str_contains($perm->name, 'supply request');
         });
         $magasinier->syncPermissions($magasinierPerms);
     }
