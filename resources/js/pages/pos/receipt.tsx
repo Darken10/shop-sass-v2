@@ -80,7 +80,44 @@ export default function PosReceipt({ sale }: { sale: Sale }) {
 
     return (
         <>
-            <Head title={`Reçu ${sale.reference}`} />
+            <Head title={`Reçu ${sale.reference}`}>
+                <style>{`
+                    @page {
+                        size: 80mm auto;
+                        margin: 2mm;
+                    }
+                    @media print {
+                        html, body {
+                            width: 80mm !important;
+                            min-width: 80mm !important;
+                            max-width: 80mm !important;
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            background: white !important;
+                            -webkit-print-color-adjust: exact;
+                            print-color-adjust: exact;
+                        }
+                        /* Hide the sidebar, nav, and non-receipt UI */
+                        nav, aside, header, footer,
+                        [data-sidebar], [data-slot="sidebar"] {
+                            display: none !important;
+                        }
+                        #receipt-root {
+                            width: 76mm !important;
+                            max-width: 76mm !important;
+                            margin: 0 !important;
+                            padding: 2mm !important;
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                        }
+                        #receipt-root * {
+                            color: black !important;
+                            border-color: #ccc !important;
+                        }
+                    }
+                `}</style>
+            </Head>
 
             {/* Action bar (hidden on print) */}
             <div className="flex items-center justify-center gap-3 border-b bg-card p-4 print:hidden">
@@ -101,8 +138,8 @@ export default function PosReceipt({ sale }: { sale: Sale }) {
             </div>
 
             {/* Receipt */}
-            <div className="mx-auto max-w-sm p-4 print:max-w-full print:p-0" ref={printRef}>
-                <div className="rounded-lg border bg-white p-6 text-sm print:border-none print:shadow-none dark:bg-card">
+            <div id="receipt-root" className="mx-auto max-w-sm p-4 print:p-0" ref={printRef}>
+                <div className="rounded-lg border bg-white p-6 text-sm print:rounded-none print:border-none print:p-0 print:text-[11px] print:shadow-none dark:bg-card">
                     {/* Header */}
                     <div className="mb-4 text-center">
                         <h1 className="text-lg font-bold">{sale.shop.name}</h1>
