@@ -132,9 +132,70 @@ it('closes a cash register session', function () {
     expect($session->fresh()->closed_at)->not->toBeNull();
 });
 
-// --- Session summary ---
+// --- Sessions list ---
 
-it('shows session summary', function () {
+it('lists all cash register sessions', function () {
+    CashRegisterSession::withoutGlobalScopes()->create([
+        'session_number' => 'CS-00030',
+        'status' => CashRegisterSessionStatus::Open,
+        'opening_amount' => 10000,
+        'shop_id' => $this->shop->id,
+        'cashier_id' => $this->admin->id,
+        'company_id' => $this->company->id,
+        'opened_at' => now(),
+    ]);
+
+    CashRegisterSession::withoutGlobalScopes()->create([
+        'session_number' => 'CS-00031',
+        'status' => CashRegisterSessionStatus::Closed,
+        'opening_amount' => 5000,
+        'closing_amount' => 15000,
+        'shop_id' => $this->shop->id,
+        'cashier_id' => $this->admin->id,
+        'company_id' => $this->company->id,
+        'opened_at' => now()->subHours(8),
+        'closed_at' => now()->subHours(1),
+    ]);
+
+    actingAs($this->admin)
+        ->get('/pos/sessions')
+        ->assertSuccessful()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('pos/sessions/index')
+            ->has('sessions.data', 2)
+        );
+});
+
+it('does not show sessions from other companies', function () {
+    $otherShop = Shop::factory()->active()->create([
+        'company_id' => $this->companyB->id,
+        'created_by' => $this->admin->id,
+    ]);
+
+    $otherUser = User::factory()->create(['company_id' => $this->companyB->id]);
+
+    CashRegisterSession::withoutGlobalScopes()->create([
+        'session_number' => 'CS-00040',
+        'status' => CashRegisterSessionStatus::Open,
+        'opening_amount' => 5000,
+        'shop_id' => $otherShop->id,
+        'cashier_id' => $otherUser->id,
+        'company_id' => $this->companyB->id,
+        'opened_at' => now(),
+    ]);
+
+    actingAs($this->admin)
+        ->get('/pos/sessions')
+        ->assertSuccessful()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('pos/sessions/index')
+            ->has('sessions.data', 0)
+        );
+});
+
+// --- Session detail ---
+
+it('shows session detail with stats', function () {
     $session = CashRegisterSession::withoutGlobalScopes()->create([
         'session_number' => 'CS-00020',
         'status' => CashRegisterSessionStatus::Open,
@@ -149,8 +210,11 @@ it('shows session summary', function () {
         ->get("/pos/sessions/{$session->id}")
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('pos/session-summary')
+            ->component('pos/sessions/show')
             ->has('session')
+            ->has('stats')
             ->where('session.id', $session->id)
+            ->where('stats.totalSales', 0)
+            ->where('stats.salesCount', 0)
         );
 });

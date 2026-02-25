@@ -13,6 +13,7 @@ Route::middleware(['auth', 'verified'])
         // Cash register
         Route::get('/', [CashRegisterController::class, 'index'])->name('index');
         Route::post('/open', [CashRegisterController::class, 'open'])->name('open');
+        Route::get('/sessions', [CashRegisterController::class, 'sessions'])->name('sessions.index');
         Route::post('/sessions/{session}/close', [CashRegisterController::class, 'close'])->name('close');
         Route::get('/sessions/{session}', [CashRegisterController::class, 'show'])->name('sessions.show');
 

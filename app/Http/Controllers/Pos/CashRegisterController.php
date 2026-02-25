@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Pos;
 
 use App\Data\Pos\CloseCashRegisterData;
 use App\Data\Pos\OpenCashRegisterData;
+use App\Enums\PaymentMethod;
 use App\Http\Controllers\Controller;
 use App\Models\Logistics\Shop;
 use App\Models\Pos\CashRegisterSession;
@@ -35,6 +36,25 @@ class CashRegisterController extends Controller
         return Inertia::render('pos/index', [
             'currentSession' => $session?->load(['shop', 'cashier', 'sales.payments']),
             'shops' => $shops,
+        ]);
+    }
+
+    /**
+     * List all cash register sessions (history).
+     */
+    public function sessions(): Response
+    {
+        $this->authorize('viewAny', CashRegisterSession::class);
+
+        $sessions = CashRegisterSession::query()
+            ->with(['shop:id,name,code', 'cashier:id,name'])
+            ->withCount('sales')
+            ->withSum('sales', 'total')
+            ->orderByDesc('opened_at')
+            ->paginate(20);
+
+        return Inertia::render('pos/sessions/index', [
+            'sessions' => $sessions,
         ]);
     }
 
@@ -76,7 +96,7 @@ class CashRegisterController extends Controller
     }
 
     /**
-     * Show session summary (for closing or review).
+     * Show detailed session view with stats.
      */
     public function show(CashRegisterSession $session): Response
     {
@@ -85,11 +105,56 @@ class CashRegisterController extends Controller
         $session->load([
             'shop',
             'cashier',
-            'sales' => fn ($q) => $q->with(['items.product', 'payments', 'customer']),
+            'sales' => fn ($q) => $q->with(['items.product', 'items.promotion', 'payments', 'customer']),
+            'payments',
         ]);
 
-        return Inertia::render('pos/session-summary', [
+        $allPayments = $session->sales->flatMap(fn ($sale) => $sale->payments);
+
+        $paymentBreakdown = collect(PaymentMethod::cases())->map(fn ($method) => [
+            'method' => $method->value,
+            'label' => $method->label(),
+            'total' => $allPayments->where('method', $method)->sum('amount'),
+        ])->filter(fn ($item) => $item['total'] > 0)->values();
+
+        $totalSales = $session->sales->sum('total');
+        $totalPaid = $allPayments->sum('amount');
+        $totalCredits = $session->sales->sum('amount_due');
+        $totalDiscounts = $session->sales->sum('discount_total');
+        $totalChangeGiven = $session->sales->sum('change_given');
+        $salesCount = $session->sales->count();
+        $itemsCount = $session->sales->sum(fn ($sale) => $sale->items->sum('quantity'));
+
+        $theoreticalClosing = $session->opening_amount + $totalPaid - $totalChangeGiven;
+        $gap = $session->isClosed() && $session->closing_amount
+            ? $session->closing_amount - $theoreticalClosing
+            : null;
+
+        $hourlySales = $session->sales
+            ->groupBy(fn ($sale) => $sale->created_at->format('H'))
+            ->map(fn ($sales, $hour) => [
+                'hour' => $hour.'h',
+                'count' => $sales->count(),
+                'total' => $sales->sum('total'),
+            ])
+            ->sortKeys()
+            ->values();
+
+        return Inertia::render('pos/sessions/show', [
             'session' => $session,
+            'stats' => [
+                'totalSales' => $totalSales,
+                'salesCount' => $salesCount,
+                'itemsCount' => $itemsCount,
+                'totalPaid' => $totalPaid,
+                'totalCredits' => $totalCredits,
+                'totalDiscounts' => $totalDiscounts,
+                'totalChangeGiven' => $totalChangeGiven,
+                'theoreticalClosing' => $theoreticalClosing,
+                'gap' => $gap,
+                'paymentBreakdown' => $paymentBreakdown,
+                'hourlySales' => $hourlySales,
+            ],
         ]);
     }
 }

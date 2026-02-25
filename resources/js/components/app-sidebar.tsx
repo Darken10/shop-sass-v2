@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     Banknote,
     Building2,
+    Clock,
     Coins,
     CreditCard,
     Fuel,
@@ -31,7 +32,7 @@ import { index as warehousesIndex } from '@/actions/App/Http/Controllers/Admin/L
 import { index as stocksIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/WarehouseStockController';
 import { index as productsIndex } from '@/actions/App/Http/Controllers/Admin/ProductController';
 import { index as usersIndex } from '@/actions/App/Http/Controllers/Admin/UserController';
-import { index as posIndex } from '@/actions/App/Http/Controllers/Pos/CashRegisterController';
+import { index as posIndex, sessions as sessionsIndex } from '@/actions/App/Http/Controllers/Pos/CashRegisterController';
 import { index as customersIndex } from '@/actions/App/Http/Controllers/Pos/CustomerController';
 import { index as promotionsIndex } from '@/actions/App/Http/Controllers/Pos/PromotionController';
 import { index as salesIndex, credits as creditsIndex } from '@/actions/App/Http/Controllers/Pos/SaleController';
@@ -134,6 +135,7 @@ export function AppSidebar() {
         ...(has('read sale') ? [{ title: 'Créances', href: creditsIndex().url, icon: CreditCard }] : []),
         ...(has('read customer') ? [{ title: 'Clients', href: customersIndex().url, icon: Users }] : []),
         ...(has('read promotion') ? [{ title: 'Promotions', href: promotionsIndex().url, icon: Percent }] : []),
+        ...(has('read sale') ? [{ title: 'Historique caisses', href: sessionsIndex().url, icon: Clock }] : []),
     ];
 
     const showPos = posItems.length > 0;
