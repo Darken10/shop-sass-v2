@@ -46,7 +46,7 @@ class SaleController extends Controller
         $shopStocks = ShopStock::withoutGlobalScopes()
             ->where('shop_id', $session->shop_id)
             ->where('quantity', '>', 0)
-            ->with(['product:id,name,code,price,cost_price,unity,image,category_id', 'product.category:id,name'])
+            ->with(['product:id,name,code,barcode,price,cost_price,unity,image,category_id', 'product.category:id,name'])
             ->get()
             ->map(fn ($stock) => [
                 'product' => $stock->product,
@@ -208,9 +208,10 @@ class SaleController extends Controller
             ->where('quantity', '>', 0)
             ->whereHas('product', function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('code', 'like', "%{$search}%");
+                    ->orWhere('code', 'like', "%{$search}%")
+                    ->orWhere('barcode', 'like', "%{$search}%");
             })
-            ->with(['product:id,name,code,price,unity,image,category_id', 'product.category:id,name'])
+            ->with(['product:id,name,code,barcode,price,unity,image,category_id', 'product.category:id,name'])
             ->limit(20)
             ->get()
             ->map(fn ($stock) => [
@@ -220,6 +221,38 @@ class SaleController extends Controller
             ]);
 
         return response()->json(['products' => $stocks]);
+    }
+
+    /**
+     * Lookup a product by exact barcode match (AJAX).
+     */
+    public function lookupBarcode(Request $request): JsonResponse
+    {
+        $user = auth()->user();
+        $session = $this->cashRegisterService->getOpenSession($user);
+
+        if (! $session) {
+            return response()->json(['product' => null], 400);
+        }
+
+        $barcode = $request->input('barcode', '');
+
+        $stock = ShopStock::withoutGlobalScopes()
+            ->where('shop_id', $session->shop_id)
+            ->where('quantity', '>', 0)
+            ->whereHas('product', fn ($q) => $q->where('barcode', $barcode))
+            ->with(['product:id,name,code,barcode,price,unity,image,category_id', 'product.category:id,name'])
+            ->first();
+
+        if (! $stock) {
+            return response()->json(['product' => null], 404);
+        }
+
+        return response()->json([
+            'product' => $stock->product,
+            'available_quantity' => $stock->quantity,
+            'is_low_stock' => $stock->isLowStock(),
+        ]);
     }
 
     /**

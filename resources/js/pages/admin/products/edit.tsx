@@ -14,6 +14,7 @@ type Product = {
     id: string;
     name: string;
     code: string;
+    barcode: string | null;
     description: string | null;
     price: string;
     cost_price: string | null;
@@ -68,6 +69,7 @@ export default function ProductsEdit({ product, categories, tags }: Props) {
                                 defaults={{
                                     name: product.name,
                                     code: product.code,
+                                    barcode: product.barcode ?? undefined,
                                     description: product.description ?? undefined,
                                     price: product.price,
                                     cost_price: product.cost_price ?? undefined,

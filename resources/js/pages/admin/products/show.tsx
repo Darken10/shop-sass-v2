@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, DollarSign, Edit, Hash, Layers, Package, Tag, Trash2, User } from 'lucide-react';
+import { ArrowLeft, DollarSign, Edit, Hash, Layers, Package, ScanBarcode, Tag, Trash2, User } from 'lucide-react';
 import { useState } from 'react';
 import { index as productsIndex, edit, destroy } from '@/actions/App/Http/Controllers/Admin/ProductController';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +25,7 @@ type Product = {
     id: string;
     name: string;
     code: string;
+    barcode: string | null;
     description: string | null;
     price: string;
     cost_price: string | null;
@@ -103,6 +104,12 @@ export default function ProductShow({ product }: { product: Product }) {
                                     <span className="text-sm text-muted-foreground">{product.code}</span>
                                     <Badge variant={status.variant}>{status.label}</Badge>
                                 </div>
+                                {product.barcode && (
+                                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                        <ScanBarcode className="size-3" />
+                                        {product.barcode}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

@@ -6,6 +6,7 @@ import {
     Minus,
     Package,
     Plus,
+    ScanBarcode,
     Search,
     ShoppingCart,
     Smartphone,
@@ -13,8 +14,8 @@ import {
     User,
     X,
 } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
-import { store as storeSale, searchProducts } from '@/actions/App/Http/Controllers/Pos/SaleController';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { store as storeSale, searchProducts, lookupBarcode } from '@/actions/App/Http/Controllers/Pos/SaleController';
 import { quickStore as quickStoreCustomer } from '@/actions/App/Http/Controllers/Pos/CustomerController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,7 @@ type Product = {
     id: string;
     name: string;
     code: string;
+    barcode: string | null;
     price: string;
     unity: string;
     image: string | null;
@@ -132,6 +134,9 @@ export default function PosTerminal({
     const [isProcessing, setIsProcessing] = useState(false);
     const [newCustomerName, setNewCustomerName] = useState('');
     const [newCustomerPhone, setNewCustomerPhone] = useState('');
+    const barcodeInputRef = useRef<HTMLInputElement>(null);
+    const barcodeBufferRef = useRef('');
+    const barcodeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Filter products by search
     const filteredProducts = useMemo(() => {
@@ -141,6 +146,7 @@ export default function PosTerminal({
             (s) =>
                 s.product.name.toLowerCase().includes(term) ||
                 s.product.code.toLowerCase().includes(term) ||
+                (s.product.barcode ?? '').toLowerCase().includes(term) ||
                 (s.product.category?.name ?? '').toLowerCase().includes(term),
         );
     }, [shopStocks, searchTerm]);
@@ -176,6 +182,112 @@ export default function PosTerminal({
         },
         [promotions],
     );
+
+    // Barcode scan handler — looks up by barcode and adds to cart
+    const handleBarcodeScan = useCallback(
+        async (barcode: string) => {
+            // First check local data
+            const localMatch = shopStocks.find(
+                (s) => s.product.barcode && s.product.barcode.toLowerCase() === barcode.toLowerCase(),
+            );
+
+            if (localMatch) {
+                addToCartByStock(localMatch);
+                return;
+            }
+
+            // Fallback to server lookup
+            try {
+                const res = await fetch(`${lookupBarcode().url}?barcode=${encodeURIComponent(barcode)}`, {
+                    headers: { Accept: 'application/json' },
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.product) {
+                        const stockItem: ShopStockItem = {
+                            product: data.product,
+                            available_quantity: data.available_quantity,
+                            stock_alert: 0,
+                            is_low_stock: data.is_low_stock,
+                        };
+                        addToCartByStock(stockItem);
+                    }
+                }
+            } catch {
+                // Silently fail — product not found
+            }
+        },
+        [shopStocks],
+    );
+
+    // Global keyboard listener for barcode scanner (keyboard wedge)
+    useEffect(() => {
+        function handleKeyDown(e: KeyboardEvent) {
+            const target = e.target as HTMLElement;
+            // Only capture if not in a regular input/textarea (except barcode input)
+            if (
+                target.tagName === 'TEXTAREA' ||
+                (target.tagName === 'INPUT' && !target.classList.contains('barcode-scanner-input'))
+            ) {
+                return;
+            }
+
+            if (e.key === 'Enter') {
+                if (barcodeBufferRef.current.length > 3) {
+                    e.preventDefault();
+                    handleBarcodeScan(barcodeBufferRef.current);
+                }
+                barcodeBufferRef.current = '';
+                if (barcodeTimerRef.current) clearTimeout(barcodeTimerRef.current);
+                return;
+            }
+
+            if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                barcodeBufferRef.current += e.key;
+                if (barcodeTimerRef.current) clearTimeout(barcodeTimerRef.current);
+                barcodeTimerRef.current = setTimeout(() => {
+                    barcodeBufferRef.current = '';
+                }, 80);
+            }
+        }
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            if (barcodeTimerRef.current) clearTimeout(barcodeTimerRef.current);
+        };
+    }, [handleBarcodeScan]);
+
+    function addToCartByStock(stockItem: ShopStockItem) {
+        setCart((prev) => {
+            const existing = prev.find((c) => c.product.id === stockItem.product.id);
+            if (existing) {
+                if (existing.quantity >= stockItem.available_quantity) return prev;
+                return prev.map((c) =>
+                    c.product.id === stockItem.product.id
+                        ? {
+                              ...c,
+                              quantity: c.quantity + 1,
+                              discount: calculateDiscount(c.unit_price, c.quantity + 1, c.promotion_id),
+                          }
+                        : c,
+                );
+            }
+            const unitPrice = Number(stockItem.product.price);
+            return [
+                ...prev,
+                {
+                    product: stockItem.product,
+                    quantity: 1,
+                    unit_price: unitPrice,
+                    discount: 0,
+                    promotion_id: null,
+                    available_quantity: stockItem.available_quantity,
+                },
+            ];
+        });
+    }
 
     function addToCart(stockItem: ShopStockItem) {
         setCart((prev) => {
@@ -369,15 +481,21 @@ export default function PosTerminal({
                     <div className="flex flex-1 flex-col overflow-hidden border-r">
                         {/* Search */}
                         <div className="border-b p-3">
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                                <Input
-                                    placeholder="Rechercher un produit (nom, code, catégorie)..."
-                                    className="pl-10"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    autoFocus
-                                />
+                            <div className="flex gap-2">
+                                <div className="relative flex-1">
+                                    <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Rechercher un produit (nom, code, code-barres, catégorie)..."
+                                        className="pl-10"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        autoFocus
+                                    />
+                                </div>
+                                <div className="flex items-center gap-1.5 rounded-md border border-dashed px-2.5 text-xs text-muted-foreground">
+                                    <ScanBarcode className="size-3.5" />
+                                    <span className="hidden sm:inline">Scanner actif</span>
+                                </div>
                             </div>
                         </div>
 

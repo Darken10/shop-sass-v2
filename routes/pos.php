@@ -28,6 +28,7 @@ Route::middleware(['auth', 'verified'])
 
         // Product search (AJAX)
         Route::get('/products/search', [SaleController::class, 'searchProducts'])->name('products.search');
+        Route::get('/products/barcode', [SaleController::class, 'lookupBarcode'])->name('products.barcode');
 
         // QR code verification (public-ish)
         Route::get('/verify/{token}', [SaleController::class, 'verify'])->name('verify')->withoutMiddleware(['auth', 'verified']);

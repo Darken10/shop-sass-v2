@@ -1,7 +1,8 @@
-import { DollarSign, Hash, Layers, Package, Plus, Tag, Upload, X } from 'lucide-react';
+import { DollarSign, Hash, Layers, Package, Plus, ScanBarcode, Tag, Upload, X } from 'lucide-react';
 import { useCallback, useRef, useState } from 'react';
 import { store as storeCategoryAction } from '@/actions/App/Http/Controllers/Admin/ProductCategoryController';
 import { store as storeTagAction } from '@/actions/App/Http/Controllers/Admin/ProductTagController';
+import BarcodeScanner from '@/components/barcode-scanner';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -40,6 +41,7 @@ const UNITY_OPTIONS = [
 type ProductDefaults = {
     name?: string;
     code?: string;
+    barcode?: string;
     description?: string;
     price?: string;
     cost_price?: string;
@@ -242,6 +244,23 @@ export default function ProductForm({
                                     </div>
                                     <InputError message={errors.code} />
                                 </div>
+                            </div>
+
+                            {/* Barcode */}
+                            <div className="grid gap-2">
+                                <Label htmlFor="barcode">
+                                    <span className="flex items-center gap-1.5">
+                                        <ScanBarcode className="size-3.5" />
+                                        Code-barres
+                                    </span>
+                                </Label>
+                                <BarcodeScanner
+                                    name="barcode"
+                                    defaultValue={defaults.barcode ?? ''}
+                                    onScan={() => {}}
+                                    placeholder="Scanner ou saisir le code-barres…"
+                                    error={errors.barcode}
+                                />
                             </div>
 
                             <div className="grid gap-2">
