@@ -305,3 +305,55 @@ it('delivering a transfer creates stock movement records', function () {
         'destination_shop_id' => $this->shop->id,
     ]);
 });
+
+it('prevents creating a transfer when stock is insufficient', function () {
+    actingAs($this->admin)
+        ->post('/admin/logistics/transfers', [
+            'type' => TransferType::WarehouseToShop->value,
+            'source_warehouse_id' => $this->warehouseA->id,
+            'destination_shop_id' => $this->shop->id,
+            'notes' => 'Too much',
+            'items' => [
+                [
+                    'product_id' => $this->product->id,
+                    'quantity_requested' => 300,
+                ],
+            ],
+        ])
+        ->assertRedirect()
+        ->assertSessionHasErrors('items');
+
+    expect(Transfer::withoutGlobalScopes()->count())->toBe(0);
+});
+
+it('prevents delivering a transfer when stock is insufficient', function () {
+    $transfer = Transfer::withoutGlobalScopes()->create([
+        'reference' => 'TRF-INSUF01',
+        'type' => TransferType::WarehouseToShop,
+        'status' => TransferStatus::InTransit,
+        'source_warehouse_id' => $this->warehouseA->id,
+        'destination_shop_id' => $this->shop->id,
+        'company_id' => $this->company->id,
+        'created_by' => $this->admin->id,
+    ]);
+
+    TransferItem::withoutGlobalScopes()->create([
+        'transfer_id' => $transfer->id,
+        'product_id' => $this->product->id,
+        'quantity_requested' => 300,
+    ]);
+
+    actingAs($this->admin)
+        ->post("/admin/logistics/transfers/{$transfer->id}/deliver")
+        ->assertRedirect()
+        ->assertSessionHas('error');
+
+    expect($transfer->fresh()->status)->toBe(TransferStatus::InTransit);
+
+    $warehouseStock = WarehouseStock::withoutGlobalScopes()
+        ->where('product_id', $this->product->id)
+        ->where('warehouse_id', $this->warehouseA->id)
+        ->first();
+
+    expect($warehouseStock->quantity)->toBe(100);
+});

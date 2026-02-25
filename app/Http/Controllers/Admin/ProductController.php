@@ -10,7 +10,10 @@ use App\Http\Requests\Product\UpdateProductRequest;
 use App\Models\Product\Product;
 use App\Models\Product\ProductCategory;
 use App\Models\Product\ProductTag;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -134,6 +137,49 @@ class ProductController extends Controller
 
         return to_route('admin.products.show', $product)
             ->with('success', 'Produit mis à jour avec succès.');
+    }
+
+    public function quickStore(Request $request): JsonResponse
+    {
+        $this->authorize('create', Product::class);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'code' => ['required', 'string', 'max:50', Rule::unique('products', 'code')],
+            'price' => ['required', 'numeric', 'min:0'],
+            'cost_price' => ['nullable', 'numeric', 'min:0'],
+            'unity' => ['required', 'string', Rule::in(array_column(ProductUnity::cases(), 'value'))],
+            'category_id' => ['required', 'uuid', Rule::exists('product_categories', 'id')],
+        ], [
+            'name.required' => 'Le nom du produit est obligatoire.',
+            'code.required' => 'Le code du produit est obligatoire.',
+            'code.unique' => 'Ce code est déjà utilisé.',
+            'price.required' => 'Le prix est obligatoire.',
+            'price.min' => 'Le prix doit être positif.',
+            'category_id.required' => 'La catégorie est obligatoire.',
+            'category_id.exists' => 'La catégorie sélectionnée est invalide.',
+        ]);
+
+        $product = Product::create([
+            'name' => $validated['name'],
+            'code' => $validated['code'],
+            'price' => $validated['price'],
+            'cost_price' => $validated['cost_price'] ?? null,
+            'stock' => 0,
+            'stock_alert' => 0,
+            'unity' => $validated['unity'],
+            'status' => ProductStatus::ACTIVE,
+            'category_id' => $validated['category_id'],
+            'created_by' => $request->user()->id,
+        ]);
+
+        return response()->json([
+            'product' => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'code' => $product->code,
+            ],
+        ], 201);
     }
 
     public function destroy(Product $product): RedirectResponse

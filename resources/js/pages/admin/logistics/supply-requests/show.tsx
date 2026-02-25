@@ -42,9 +42,11 @@ type SupplyRequest = {
     id: string;
     reference: string;
     status: string;
+    type: string;
     notes: string | null;
-    source_warehouse: { id: string; name: string; code: string };
+    source_warehouse: { id: string; name: string; code: string } | null;
     destination_warehouse: { id: string; name: string; code: string } | null;
+    supplier: { id: string; name: string; code: string } | null;
     created_by: { id: string; name: string } | null;
     approved_by: { id: string; name: string } | null;
     approved_at: string | null;
@@ -171,15 +173,25 @@ export default function SupplyRequestShow({ supplyRequest }: { supplyRequest: Su
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-base">
                                     <WarehouseIcon className="size-4" />
-                                    Entrepôts
+                                    {supplyRequest.type === 'supplier_to_warehouse' ? 'Fournisseur → Entrepôt' : 'Entrepôts'}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="flex items-center gap-4">
                                     <div className="flex-1 rounded-lg border bg-muted/30 p-4 text-center">
-                                        <p className="text-xs text-muted-foreground">Source</p>
-                                        <p className="mt-1 font-semibold">{supplyRequest.source_warehouse.name}</p>
-                                        <p className="text-xs text-muted-foreground">{supplyRequest.source_warehouse.code}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {supplyRequest.type === 'supplier_to_warehouse' ? 'Fournisseur' : 'Source'}
+                                        </p>
+                                        <p className="mt-1 font-semibold">
+                                            {supplyRequest.type === 'supplier_to_warehouse'
+                                                ? (supplyRequest.supplier?.name ?? '—')
+                                                : (supplyRequest.source_warehouse?.name ?? '—')}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {supplyRequest.type === 'supplier_to_warehouse'
+                                                ? (supplyRequest.supplier?.code ?? '')
+                                                : (supplyRequest.source_warehouse?.code ?? '')}
+                                        </p>
                                     </div>
                                     <Truck className="size-5 shrink-0 text-muted-foreground" />
                                     <div className="flex-1 rounded-lg border bg-muted/30 p-4 text-center">

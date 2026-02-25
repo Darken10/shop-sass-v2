@@ -12,10 +12,12 @@ type SupplyRequest = {
     id: string;
     reference: string;
     status: string;
+    type: string;
     notes: string | null;
     items_count: number;
-    source_warehouse: { id: string; name: string; code: string };
+    source_warehouse: { id: string; name: string; code: string } | null;
     destination_warehouse: { id: string; name: string; code: string } | null;
+    supplier: { id: string; name: string; code: string } | null;
     created_by: { id: string; name: string } | null;
     approved_by: { id: string; name: string } | null;
     approved_at: string | null;
@@ -114,7 +116,11 @@ export default function SupplyRequestsIndex({ supplyRequests }: { supplyRequests
                                                     <td className="px-4 py-3">
                                                         <Badge variant={status.variant}>{status.label}</Badge>
                                                     </td>
-                                                    <td className="px-4 py-3">{req.source_warehouse.name}</td>
+                                                    <td className="px-4 py-3">
+                                                        {req.type === 'supplier_to_warehouse'
+                                                            ? (req.supplier?.name ?? '—')
+                                                            : (req.source_warehouse?.name ?? '—')}
+                                                    </td>
                                                     <td className="px-4 py-3 text-muted-foreground">
                                                         {req.destination_warehouse?.name ?? '—'}
                                                     </td>

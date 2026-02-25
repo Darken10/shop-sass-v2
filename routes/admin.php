@@ -22,6 +22,8 @@ Route::middleware(['auth', 'verified'])
     ->name('admin.')
     ->group(function () {
         Route::resource('products', ProductController::class);
+        Route::post('products/quick-store', [ProductController::class, 'quickStore'])
+            ->name('products.quick-store');
         Route::post('product-categories', [ProductCategoryController::class, 'store'])
             ->name('product-categories.store');
         Route::post('product-tags', [ProductTagController::class, 'store'])

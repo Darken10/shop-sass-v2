@@ -4,6 +4,7 @@ namespace App\Models\Logistics;
 
 use App\Concerns\BelongsToCompany;
 use App\Enums\SupplyRequestStatus;
+use App\Enums\SupplyType;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -23,12 +24,14 @@ class SupplyRequest extends Model
 
     protected $fillable = [
         'reference',
+        'type',
         'status',
         'notes',
         'approved_at',
         'delivered_at',
         'source_warehouse_id',
         'destination_warehouse_id',
+        'supplier_id',
         'approved_by',
         'company_id',
         'created_by',
@@ -37,6 +40,7 @@ class SupplyRequest extends Model
     protected function casts(): array
     {
         return [
+            'type' => SupplyType::class,
             'status' => SupplyRequestStatus::class,
             'approved_at' => 'datetime',
             'delivered_at' => 'datetime',
@@ -51,6 +55,11 @@ class SupplyRequest extends Model
     public function destinationWarehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class, 'destination_warehouse_id');
+    }
+
+    public function supplier(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class);
     }
 
     public function approvedBy(): BelongsTo

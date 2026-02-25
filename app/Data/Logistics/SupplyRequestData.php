@@ -2,6 +2,8 @@
 
 namespace App\Data\Logistics;
 
+use App\Enums\SupplyType;
+use Spatie\LaravelData\Attributes\Validation\Enum;
 use Spatie\LaravelData\Attributes\Validation\Nullable;
 use Spatie\LaravelData\Attributes\Validation\Required;
 use Spatie\LaravelData\Attributes\Validation\StringType;
@@ -13,14 +15,20 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 class SupplyRequestData extends Data
 {
     public function __construct(
+        #[Required, Enum(SupplyType::class)]
+        public string $type,
+
         #[Nullable, StringType]
         public ?string $notes,
 
-        #[Required, Uuid]
-        public string $source_warehouse_id,
+        #[Nullable, Uuid]
+        public ?string $source_warehouse_id,
 
         #[Nullable, Uuid]
         public ?string $destination_warehouse_id,
+
+        #[Nullable, Uuid]
+        public ?string $supplier_id,
 
         /** @var SupplyRequestItemData[] */
         public array $items,

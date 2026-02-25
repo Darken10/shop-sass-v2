@@ -61,6 +61,30 @@ class TransferController extends Controller
     {
         $this->authorize('create', Transfer::class);
 
+        $insufficientItems = [];
+
+        foreach ($data->items as $item) {
+            $sourceStock = WarehouseStock::withoutGlobalScopes()
+                ->where('product_id', $item['product_id'])
+                ->where('warehouse_id', $data->source_warehouse_id)
+                ->first();
+
+            $availableQty = $sourceStock?->quantity ?? 0;
+            $requestedQty = (int) $item['quantity_requested'];
+
+            if ($availableQty < $requestedQty) {
+                $product = Product::withoutGlobalScopes()->find($item['product_id']);
+                $productName = $product?->name ?? $item['product_id'];
+                $insufficientItems[] = "{$productName} (demandé: {$requestedQty}, disponible: {$availableQty})";
+            }
+        }
+
+        if (! empty($insufficientItems)) {
+            return back()
+                ->withInput()
+                ->withErrors(['items' => 'Stock insuffisant pour : '.implode(', ', $insufficientItems)]);
+        }
+
         $transfer = Transfer::create([
             'reference' => 'TRF-'.strtoupper(Str::random(8)),
             'type' => $data->type,
@@ -133,23 +157,44 @@ class TransferController extends Controller
     {
         $this->authorize('update', $transfer);
 
+        if (! in_array($transfer->status, [TransferStatus::Approved, TransferStatus::InTransit])) {
+            return back()->with('error', 'Ce transfert doit être approuvé ou en transit avant livraison.');
+        }
+
         $transfer->load('items.product');
+
+        $insufficientItems = [];
+
+        foreach ($transfer->items as $item) {
+            $sourceStock = WarehouseStock::withoutGlobalScopes()
+                ->where('product_id', $item->product_id)
+                ->where('warehouse_id', $transfer->source_warehouse_id)
+                ->first();
+
+            $availableQty = $sourceStock?->quantity ?? 0;
+
+            if ($availableQty < $item->quantity_requested) {
+                $insufficientItems[] = "{$item->product->name} (demandé: {$item->quantity_requested}, disponible: {$availableQty})";
+            }
+        }
+
+        if (! empty($insufficientItems)) {
+            return back()->with('error', 'Stock insuffisant pour : '.implode(', ', $insufficientItems));
+        }
 
         DB::transaction(function () use ($transfer) {
             foreach ($transfer->items as $item) {
                 $qty = $item->quantity_requested;
 
-                // Déduire du stock de l'entrepôt source
                 $sourceStock = WarehouseStock::withoutGlobalScopes()
                     ->where('product_id', $item->product_id)
                     ->where('warehouse_id', $transfer->source_warehouse_id)
                     ->first();
 
                 if ($sourceStock) {
-                    $sourceStock->decrement('quantity', min($qty, $sourceStock->quantity));
+                    $sourceStock->decrement('quantity', $qty);
                 }
 
-                // Créditer la destination
                 if ($transfer->type === TransferType::WarehouseToShop && $transfer->destination_shop_id) {
                     $destStock = ShopStock::withoutGlobalScopes()
                         ->firstOrCreate(
@@ -178,7 +223,6 @@ class TransferController extends Controller
                     $destStock->increment('quantity', $qty);
                 }
 
-                // Traçabilité via mouvement de stock
                 StockMovement::create([
                     'reference' => 'MOV-'.strtoupper(Str::random(8)),
                     'type' => $transfer->type === TransferType::WarehouseToShop

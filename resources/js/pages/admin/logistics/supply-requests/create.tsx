@@ -1,7 +1,8 @@
 import { Form, Head } from '@inertiajs/react';
-import { ArrowLeft, MinusCircle, Package, Plus, Warehouse as WarehouseIcon } from 'lucide-react';
+import { ArrowLeft, MinusCircle, Package, Plus, Truck, Warehouse as WarehouseIcon } from 'lucide-react';
 import { useState } from 'react';
 import SupplyRequestController, { index as requestsIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/SupplyRequestController';
+import CreateProductModal from '@/components/create-product-modal';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,11 +14,15 @@ import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
 type Warehouse = { id: string; name: string; code: string };
+type Supplier = { id: string; name: string; code: string };
 type Product = { id: string; name: string; code: string };
+type Category = { id: string; name: string };
 
 type Props = {
     warehouses: Warehouse[];
+    suppliers: Supplier[];
     products: Product[];
+    categories: Category[];
 };
 
 type ItemRow = {
@@ -34,10 +39,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 let nextKey = 1;
 
-export default function SupplyRequestsCreate({ warehouses, products }: Props) {
+export default function SupplyRequestsCreate({ warehouses, suppliers, products: initialProducts, categories }: Props) {
+    const [type, setType] = useState('');
+    const [supplierId, setSupplierId] = useState('');
     const [sourceId, setSourceId] = useState('');
     const [destId, setDestId] = useState('');
     const [items, setItems] = useState<ItemRow[]>([{ key: nextKey++, product_id: '', quantity_requested: '1' }]);
+    const [products, setProducts] = useState<Product[]>(initialProducts);
 
     function addItem() {
         setItems((prev) => [...prev, { key: nextKey++, product_id: '', quantity_requested: '1' }]);
@@ -50,6 +58,13 @@ export default function SupplyRequestsCreate({ warehouses, products }: Props) {
     function updateItem(key: number, field: keyof Omit<ItemRow, 'key'>, value: string) {
         setItems((prev) => prev.map((item) => (item.key === key ? { ...item, [field]: value } : item)));
     }
+
+    function handleProductCreated(product: { id: string; name: string; code: string }) {
+        setProducts((prev) => [...prev, product].sort((a, b) => a.name.localeCompare(b.name)));
+    }
+
+    const isSupplierToWarehouse = type === 'supplier_to_warehouse';
+    const isWarehouseToWarehouse = type === 'warehouse_to_warehouse';
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -65,7 +80,7 @@ export default function SupplyRequestsCreate({ warehouses, products }: Props) {
                     </Button>
                     <div>
                         <h1 className="text-xl font-semibold">Nouvelle demande d'approvisionnement</h1>
-                        <p className="text-sm text-muted-foreground">Demandez le transfert de produits entre entrepôts</p>
+                        <p className="text-sm text-muted-foreground">Fournisseur → Entrepôt ou Entrepôt → Entrepôt</p>
                     </div>
                 </div>
 
@@ -78,63 +93,119 @@ export default function SupplyRequestsCreate({ warehouses, products }: Props) {
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2 text-base">
-                                            <WarehouseIcon className="size-4" />
-                                            Entrepôts
+                                            <Truck className="size-4" />
+                                            Type d'approvisionnement
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="source_warehouse_id">
-                                                    Entrepôt source <span className="text-destructive">*</span>
-                                                </Label>
-                                                <Select value={sourceId} onValueChange={setSourceId}>
-                                                    <SelectTrigger id="source_warehouse_id">
-                                                        <SelectValue placeholder="Source" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {warehouses.map((wh) => (
-                                                            <SelectItem key={wh.id} value={wh.id}>
-                                                                {wh.name} ({wh.code})
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                                <input type="hidden" name="source_warehouse_id" value={sourceId} />
-                                                <InputError message={errors.source_warehouse_id} />
-                                            </div>
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="destination_warehouse_id">Entrepôt destination</Label>
-                                                <Select value={destId} onValueChange={setDestId}>
-                                                    <SelectTrigger id="destination_warehouse_id">
-                                                        <SelectValue placeholder="Destination (optionnel)" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {warehouses.map((wh) => (
-                                                            <SelectItem key={wh.id} value={wh.id}>
-                                                                {wh.name} ({wh.code})
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                                <input type="hidden" name="destination_warehouse_id" value={destId} />
-                                                <InputError message={errors.destination_warehouse_id} />
-                                            </div>
-                                        </div>
-
                                         <div className="grid gap-2">
-                                            <Label htmlFor="notes">Notes</Label>
-                                            <textarea
-                                                id="notes"
-                                                name="notes"
-                                                rows={2}
-                                                placeholder="Notes supplémentaires…"
-                                                className="border-input bg-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[60px] w-full rounded-md border px-3 py-2 text-sm shadow-xs focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                                            />
-                                            <InputError message={errors.notes} />
+                                            <Label htmlFor="type">
+                                                Type <span className="text-destructive">*</span>
+                                            </Label>
+                                            <Select value={type} onValueChange={(v) => { setType(v); setSupplierId(''); setSourceId(''); setDestId(''); }}>
+                                                <SelectTrigger id="type">
+                                                    <SelectValue placeholder="Sélectionner un type" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="supplier_to_warehouse">Fournisseur → Entrepôt</SelectItem>
+                                                    <SelectItem value="warehouse_to_warehouse">Entrepôt → Entrepôt</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <input type="hidden" name="type" value={type} />
+                                            <InputError message={errors.type} />
                                         </div>
                                     </CardContent>
                                 </Card>
+
+                                {type && (
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-2 text-base">
+                                                <WarehouseIcon className="size-4" />
+                                                {isSupplierToWarehouse ? 'Fournisseur & Entrepôt' : 'Entrepôts'}
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-4">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                {isSupplierToWarehouse && (
+                                                    <div className="grid gap-2">
+                                                        <Label htmlFor="supplier_id">
+                                                            Fournisseur <span className="text-destructive">*</span>
+                                                        </Label>
+                                                        <Select value={supplierId} onValueChange={setSupplierId}>
+                                                            <SelectTrigger id="supplier_id">
+                                                                <SelectValue placeholder="Sélectionner un fournisseur" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {suppliers.map((s) => (
+                                                                    <SelectItem key={s.id} value={s.id}>
+                                                                        {s.name} ({s.code})
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <input type="hidden" name="supplier_id" value={supplierId} />
+                                                        <InputError message={errors.supplier_id} />
+                                                    </div>
+                                                )}
+
+                                                {isWarehouseToWarehouse && (
+                                                    <div className="grid gap-2">
+                                                        <Label htmlFor="source_warehouse_id">
+                                                            Entrepôt source <span className="text-destructive">*</span>
+                                                        </Label>
+                                                        <Select value={sourceId} onValueChange={setSourceId}>
+                                                            <SelectTrigger id="source_warehouse_id">
+                                                                <SelectValue placeholder="Source" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {warehouses.map((wh) => (
+                                                                    <SelectItem key={wh.id} value={wh.id}>
+                                                                        {wh.name} ({wh.code})
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <input type="hidden" name="source_warehouse_id" value={sourceId} />
+                                                        <InputError message={errors.source_warehouse_id} />
+                                                    </div>
+                                                )}
+
+                                                <div className="grid gap-2">
+                                                    <Label htmlFor="destination_warehouse_id">
+                                                        Entrepôt destination <span className="text-destructive">*</span>
+                                                    </Label>
+                                                    <Select value={destId} onValueChange={setDestId}>
+                                                        <SelectTrigger id="destination_warehouse_id">
+                                                            <SelectValue placeholder="Destination" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {warehouses.map((wh) => (
+                                                                <SelectItem key={wh.id} value={wh.id}>
+                                                                    {wh.name} ({wh.code})
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <input type="hidden" name="destination_warehouse_id" value={destId} />
+                                                    <InputError message={errors.destination_warehouse_id} />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="notes">Notes</Label>
+                                                <textarea
+                                                    id="notes"
+                                                    name="notes"
+                                                    rows={2}
+                                                    placeholder="Notes supplémentaires…"
+                                                    className="border-input bg-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[60px] w-full rounded-md border px-3 py-2 text-sm shadow-xs focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                                />
+                                                <InputError message={errors.notes} />
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                )}
 
                                 <Card>
                                     <CardHeader>
@@ -143,10 +214,13 @@ export default function SupplyRequestsCreate({ warehouses, products }: Props) {
                                                 <Package className="size-4" />
                                                 Articles ({items.length})
                                             </span>
-                                            <Button type="button" variant="outline" size="sm" onClick={addItem}>
-                                                <Plus className="size-4" />
-                                                Ajouter
-                                            </Button>
+                                            <div className="flex items-center gap-2">
+                                                <CreateProductModal categories={categories} onProductCreated={handleProductCreated} />
+                                                <Button type="button" variant="outline" size="sm" onClick={addItem}>
+                                                    <Plus className="size-4" />
+                                                    Ajouter
+                                                </Button>
+                                            </div>
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
@@ -208,7 +282,7 @@ export default function SupplyRequestsCreate({ warehouses, products }: Props) {
                                 <Button type="button" variant="outline" asChild>
                                     <a href={requestsIndex().url}>Annuler</a>
                                 </Button>
-                                <Button type="submit" disabled={processing}>
+                                <Button type="submit" disabled={processing || !type}>
                                     {processing ? 'Enregistrement…' : 'Soumettre la demande'}
                                 </Button>
                             </div>

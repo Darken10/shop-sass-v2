@@ -5,13 +5,17 @@ namespace App\Http\Controllers\Admin\Logistics;
 use App\Data\Logistics\SupplyRequestData;
 use App\Enums\StockMovementType;
 use App\Enums\SupplyRequestStatus;
+use App\Enums\SupplyType;
 use App\Http\Controllers\Controller;
 use App\Models\Logistics\StockMovement;
+use App\Models\Logistics\Supplier;
 use App\Models\Logistics\SupplyRequest;
 use App\Models\Logistics\Warehouse;
 use App\Models\Logistics\WarehouseStock;
 use App\Models\Product\Product;
+use App\Models\Product\ProductCategory;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -26,6 +30,7 @@ class SupplyRequestController extends Controller
             ->with([
                 'sourceWarehouse:id,name,code',
                 'destinationWarehouse:id,name,code',
+                'supplier:id,name,code',
                 'createdBy:id,name',
                 'approvedBy:id,name',
             ])
@@ -45,7 +50,10 @@ class SupplyRequestController extends Controller
 
         return Inertia::render('admin/logistics/supply-requests/create', [
             'warehouses' => Warehouse::query()->select(['id', 'name', 'code'])->orderBy('name')->get(),
+            'suppliers' => Supplier::query()->select(['id', 'name', 'code'])->where('is_active', true)->orderBy('name')->get(),
             'products' => Product::query()->select(['id', 'name', 'code'])->orderBy('name')->get(),
+            'categories' => ProductCategory::query()->select(['id', 'name'])->orderBy('name')->get(),
+            'supplyTypes' => SupplyType::cases(),
         ]);
     }
 
@@ -53,12 +61,32 @@ class SupplyRequestController extends Controller
     {
         $this->authorize('create', SupplyRequest::class);
 
+        $type = SupplyType::from($data->type);
+
+        if ($type === SupplyType::SupplierToWarehouse && ! $data->supplier_id) {
+            return back()->withErrors(['supplier_id' => 'Le fournisseur est requis pour ce type d\'approvisionnement.']);
+        }
+
+        if ($type === SupplyType::SupplierToWarehouse && ! $data->destination_warehouse_id) {
+            return back()->withErrors(['destination_warehouse_id' => 'L\'entrepôt destination est requis.']);
+        }
+
+        if ($type === SupplyType::WarehouseToWarehouse && ! $data->source_warehouse_id) {
+            return back()->withErrors(['source_warehouse_id' => 'L\'entrepôt source est requis.']);
+        }
+
+        if ($type === SupplyType::WarehouseToWarehouse && ! $data->destination_warehouse_id) {
+            return back()->withErrors(['destination_warehouse_id' => 'L\'entrepôt destination est requis.']);
+        }
+
         $supplyRequest = SupplyRequest::create([
             'reference' => 'SR-'.strtoupper(Str::random(8)),
+            'type' => $type,
             'status' => SupplyRequestStatus::Pending,
             'notes' => $data->notes,
-            'source_warehouse_id' => $data->source_warehouse_id,
+            'source_warehouse_id' => $type === SupplyType::WarehouseToWarehouse ? $data->source_warehouse_id : null,
             'destination_warehouse_id' => $data->destination_warehouse_id,
+            'supplier_id' => $type === SupplyType::SupplierToWarehouse ? $data->supplier_id : null,
             'created_by' => auth()->id(),
         ]);
 
@@ -80,6 +108,7 @@ class SupplyRequestController extends Controller
         $supplyRequest->load([
             'sourceWarehouse:id,name,code',
             'destinationWarehouse:id,name,code',
+            'supplier:id,name,code',
             'createdBy:id,name',
             'approvedBy:id,name',
             'items.product:id,name,code',
@@ -119,29 +148,57 @@ class SupplyRequestController extends Controller
 
         $supplyRequest->load('items.product');
 
-        foreach ($supplyRequest->items as $item) {
-            $movement = StockMovement::create([
-                'reference' => 'MOV-'.strtoupper(Str::random(8)),
-                'type' => StockMovementType::WarehouseToWarehouse,
-                'quantity' => $item->quantity_requested,
-                'reason' => "Approvisionnement {$supplyRequest->reference}",
-                'product_id' => $item->product_id,
-                'source_warehouse_id' => $supplyRequest->source_warehouse_id,
-                'destination_warehouse_id' => $supplyRequest->destination_warehouse_id,
-                'supply_request_id' => $supplyRequest->id,
-                'company_id' => $supplyRequest->company_id,
-                'created_by' => auth()->id(),
-            ]);
+        if ($supplyRequest->type === SupplyType::WarehouseToWarehouse) {
+            $insufficientItems = [];
 
-            $this->applyTransferStock($movement);
+            foreach ($supplyRequest->items as $item) {
+                $sourceStock = WarehouseStock::withoutGlobalScopes()
+                    ->where('product_id', $item->product_id)
+                    ->where('warehouse_id', $supplyRequest->source_warehouse_id)
+                    ->first();
 
-            $item->update(['quantity_delivered' => $item->quantity_requested]);
+                $availableQty = $sourceStock?->quantity ?? 0;
+
+                if ($availableQty < $item->quantity_requested) {
+                    $insufficientItems[] = "{$item->product->name} (demandé: {$item->quantity_requested}, disponible: {$availableQty})";
+                }
+            }
+
+            if (! empty($insufficientItems)) {
+                return back()->with('error', 'Stock insuffisant pour : '.implode(', ', $insufficientItems));
+            }
         }
 
-        $supplyRequest->update([
-            'status' => SupplyRequestStatus::Delivered,
-            'delivered_at' => now(),
-        ]);
+        DB::transaction(function () use ($supplyRequest) {
+            foreach ($supplyRequest->items as $item) {
+                $movementType = $supplyRequest->type === SupplyType::SupplierToWarehouse
+                    ? StockMovementType::PurchaseEntry
+                    : StockMovementType::WarehouseToWarehouse;
+
+                $movement = StockMovement::create([
+                    'reference' => 'MOV-'.strtoupper(Str::random(8)),
+                    'type' => $movementType,
+                    'quantity' => $item->quantity_requested,
+                    'reason' => "Approvisionnement {$supplyRequest->reference}",
+                    'product_id' => $item->product_id,
+                    'source_warehouse_id' => $supplyRequest->source_warehouse_id,
+                    'destination_warehouse_id' => $supplyRequest->destination_warehouse_id,
+                    'supplier_id' => $supplyRequest->supplier_id,
+                    'supply_request_id' => $supplyRequest->id,
+                    'company_id' => $supplyRequest->company_id,
+                    'created_by' => auth()->id(),
+                ]);
+
+                $this->applySupplyStock($movement, $supplyRequest->type);
+
+                $item->update(['quantity_delivered' => $item->quantity_requested]);
+            }
+
+            $supplyRequest->update([
+                'status' => SupplyRequestStatus::Delivered,
+                'delivered_at' => now(),
+            ]);
+        });
 
         return back()->with('success', 'Approvisionnement livré avec succès.');
     }
@@ -161,16 +218,16 @@ class SupplyRequestController extends Controller
         return back()->with('success', 'Demande rejetée.');
     }
 
-    private function applyTransferStock(StockMovement $movement): void
+    private function applySupplyStock(StockMovement $movement, SupplyType $type): void
     {
-        if ($movement->source_warehouse_id) {
+        if ($type === SupplyType::WarehouseToWarehouse && $movement->source_warehouse_id) {
             $sourceStock = WarehouseStock::withoutGlobalScopes()
                 ->where('product_id', $movement->product_id)
                 ->where('warehouse_id', $movement->source_warehouse_id)
                 ->first();
 
             if ($sourceStock) {
-                $sourceStock->decrement('quantity', min($movement->quantity, $sourceStock->quantity));
+                $sourceStock->decrement('quantity', $movement->quantity);
             }
         }
 
