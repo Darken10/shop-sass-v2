@@ -291,53 +291,12 @@ it('only shows categories from the same company in create page', function () {
         );
 });
 
-// --- Barcode ---
+// --- Code uniqueness (barcode = code) ---
 
-it('creates a product with a barcode', function () {
-    actingAs($this->admin)
-        ->post('/admin/products', [
-            'name' => 'Produit Barcode',
-            'code' => 'PB-001',
-            'barcode' => '1234567890123',
-            'price' => 10,
-            'stock' => 5,
-            'unity' => 'piece',
-            'status' => 'active',
-            'category_id' => $this->categoryA->id,
-        ])
-        ->assertRedirect();
-
-    assertDatabaseHas('products', [
-        'code' => 'PB-001',
-        'barcode' => '1234567890123',
-        'company_id' => $this->companyA->id,
-    ]);
-});
-
-it('creates a product without a barcode', function () {
-    actingAs($this->admin)
-        ->post('/admin/products', [
-            'name' => 'Produit Sans Barcode',
-            'code' => 'PSB-001',
-            'price' => 10,
-            'stock' => 5,
-            'unity' => 'piece',
-            'status' => 'active',
-            'category_id' => $this->categoryA->id,
-        ])
-        ->assertRedirect();
-
-    assertDatabaseHas('products', [
-        'code' => 'PSB-001',
-        'barcode' => null,
-    ]);
-});
-
-it('rejects duplicate barcode within same company', function () {
+it('rejects duplicate code', function () {
     Product::withoutGlobalScopes()->create([
         'name' => 'Existing',
-        'code' => 'EX-001',
-        'barcode' => '9999999999999',
+        'code' => '9999999999999',
         'price' => 10,
         'stock' => 5,
         'category_id' => $this->categoryA->id,
@@ -347,102 +306,13 @@ it('rejects duplicate barcode within same company', function () {
 
     actingAs($this->admin)
         ->post('/admin/products', [
-            'name' => 'Duplicate Barcode',
-            'code' => 'DB-001',
-            'barcode' => '9999999999999',
+            'name' => 'Duplicate Code',
+            'code' => '9999999999999',
             'price' => 10,
             'stock' => 5,
             'unity' => 'piece',
             'status' => 'active',
             'category_id' => $this->categoryA->id,
         ])
-        ->assertSessionHasErrors('barcode');
-});
-
-it('allows same barcode in different companies', function () {
-    Product::withoutGlobalScopes()->create([
-        'name' => 'Company B Product',
-        'code' => 'CB-001',
-        'barcode' => '1111111111111',
-        'price' => 10,
-        'stock' => 5,
-        'category_id' => $this->categoryB->id,
-        'company_id' => $this->companyB->id,
-        'created_by' => $this->adminB->id,
-    ]);
-
-    actingAs($this->admin)
-        ->post('/admin/products', [
-            'name' => 'Company A Product',
-            'code' => 'CA-001',
-            'barcode' => '1111111111111',
-            'price' => 10,
-            'stock' => 5,
-            'unity' => 'piece',
-            'status' => 'active',
-            'category_id' => $this->categoryA->id,
-        ])
-        ->assertRedirect();
-
-    assertDatabaseHas('products', [
-        'code' => 'CA-001',
-        'barcode' => '1111111111111',
-        'company_id' => $this->companyA->id,
-    ]);
-});
-
-it('updates a product barcode', function () {
-    $product = Product::withoutGlobalScopes()->create([
-        'name' => 'Barcode Update',
-        'code' => 'BU-001',
-        'barcode' => '5555555555555',
-        'price' => 10,
-        'stock' => 5,
-        'category_id' => $this->categoryA->id,
-        'company_id' => $this->companyA->id,
-        'created_by' => $this->admin->id,
-    ]);
-
-    actingAs($this->admin)
-        ->put("/admin/products/{$product->id}", [
-            'name' => 'Barcode Update',
-            'code' => 'BU-001',
-            'barcode' => '6666666666666',
-            'price' => 10,
-            'stock' => 5,
-            'unity' => 'piece',
-            'status' => 'active',
-            'category_id' => $this->categoryA->id,
-        ])
-        ->assertRedirect();
-
-    expect($product->fresh()->barcode)->toBe('6666666666666');
-});
-
-it('allows keeping same barcode on update', function () {
-    $product = Product::withoutGlobalScopes()->create([
-        'name' => 'Keep Barcode',
-        'code' => 'KB-001',
-        'barcode' => '7777777777777',
-        'price' => 10,
-        'stock' => 5,
-        'category_id' => $this->categoryA->id,
-        'company_id' => $this->companyA->id,
-        'created_by' => $this->admin->id,
-    ]);
-
-    actingAs($this->admin)
-        ->put("/admin/products/{$product->id}", [
-            'name' => 'Keep Barcode Updated',
-            'code' => 'KB-001',
-            'barcode' => '7777777777777',
-            'price' => 15,
-            'stock' => 10,
-            'unity' => 'piece',
-            'status' => 'active',
-            'category_id' => $this->categoryA->id,
-        ])
-        ->assertRedirect();
-
-    expect($product->fresh()->name)->toBe('Keep Barcode Updated');
+        ->assertSessionHasErrors('code');
 });

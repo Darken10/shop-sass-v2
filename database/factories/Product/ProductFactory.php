@@ -19,7 +19,6 @@ class ProductFactory extends Factory
         return [
             'name' => fake()->words(3, true),
             'code' => fake()->unique()->numerify('PRD-#####'),
-            'barcode' => fake()->optional(0.7)->ean13(),
             'description' => fake()->sentence(),
             'price' => fake()->randomFloat(2, 1, 1000),
             'cost_price' => fake()->randomFloat(2, 1, 500),

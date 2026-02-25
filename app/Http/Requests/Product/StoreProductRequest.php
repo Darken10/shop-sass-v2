@@ -18,12 +18,6 @@ class StoreProductRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'code' => ['required', 'string', 'max:50', Rule::unique('products', 'code')],
-            'barcode' => [
-                'nullable',
-                'string',
-                'max:255',
-                Rule::unique('products', 'barcode')->where('company_id', $this->user()?->company_id),
-            ],
             'description' => ['nullable', 'string', 'max:1000'],
             'price' => ['required', 'numeric', 'min:0'],
             'cost_price' => ['nullable', 'numeric', 'min:0'],
@@ -45,7 +39,6 @@ class StoreProductRequest extends FormRequest
             'name.required' => 'Le nom du produit est obligatoire.',
             'code.required' => 'Le code du produit est obligatoire.',
             'code.unique' => 'Ce code est déjà utilisé.',
-            'barcode.unique' => 'Ce code-barres est déjà utilisé par un autre produit.',
             'price.required' => 'Le prix est obligatoire.',
             'price.min' => 'Le prix doit être positif.',
             'stock.required' => 'Le stock est obligatoire.',

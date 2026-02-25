@@ -40,7 +40,6 @@ type Product = {
     id: string;
     name: string;
     code: string;
-    barcode: string | null;
     price: string;
     unity: string;
     image: string | null;
@@ -146,7 +145,6 @@ export default function PosTerminal({
             (s) =>
                 s.product.name.toLowerCase().includes(term) ||
                 s.product.code.toLowerCase().includes(term) ||
-                (s.product.barcode ?? '').toLowerCase().includes(term) ||
                 (s.product.category?.name ?? '').toLowerCase().includes(term),
         );
     }, [shopStocks, searchTerm]);
@@ -183,12 +181,12 @@ export default function PosTerminal({
         [promotions],
     );
 
-    // Barcode scan handler — looks up by barcode and adds to cart
+    // Barcode scan handler — looks up by code and adds to cart
     const handleBarcodeScan = useCallback(
         async (barcode: string) => {
-            // First check local data
+            // First check local data by code
             const localMatch = shopStocks.find(
-                (s) => s.product.barcode && s.product.barcode.toLowerCase() === barcode.toLowerCase(),
+                (s) => s.product.code.toLowerCase() === barcode.toLowerCase(),
             );
 
             if (localMatch) {

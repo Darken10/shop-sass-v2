@@ -46,7 +46,7 @@ class SaleController extends Controller
         $shopStocks = ShopStock::withoutGlobalScopes()
             ->where('shop_id', $session->shop_id)
             ->where('quantity', '>', 0)
-            ->with(['product:id,name,code,barcode,price,cost_price,unity,image,category_id', 'product.category:id,name'])
+            ->with(['product:id,name,code,price,cost_price,unity,image,category_id', 'product.category:id,name'])
             ->get()
             ->map(fn ($stock) => [
                 'product' => $stock->product,
@@ -208,10 +208,9 @@ class SaleController extends Controller
             ->where('quantity', '>', 0)
             ->whereHas('product', function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('code', 'like', "%{$search}%")
-                    ->orWhere('barcode', 'like', "%{$search}%");
+                    ->orWhere('code', 'like', "%{$search}%");
             })
-            ->with(['product:id,name,code,barcode,price,unity,image,category_id', 'product.category:id,name'])
+            ->with(['product:id,name,code,price,unity,image,category_id', 'product.category:id,name'])
             ->limit(20)
             ->get()
             ->map(fn ($stock) => [
@@ -240,8 +239,8 @@ class SaleController extends Controller
         $stock = ShopStock::withoutGlobalScopes()
             ->where('shop_id', $session->shop_id)
             ->where('quantity', '>', 0)
-            ->whereHas('product', fn ($q) => $q->where('barcode', $barcode))
-            ->with(['product:id,name,code,barcode,price,unity,image,category_id', 'product.category:id,name'])
+            ->whereHas('product', fn ($q) => $q->where('code', $barcode))
+            ->with(['product:id,name,code,price,unity,image,category_id', 'product.category:id,name'])
             ->first();
 
         if (! $stock) {

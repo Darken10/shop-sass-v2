@@ -60,7 +60,6 @@ class ProductController extends Controller
         $product = Product::create([
             'name' => $validated['name'],
             'code' => $validated['code'],
-            'barcode' => $validated['barcode'] ?? null,
             'description' => $validated['description'] ?? null,
             'price' => $validated['price'],
             'cost_price' => $validated['cost_price'] ?? null,
@@ -121,7 +120,6 @@ class ProductController extends Controller
         $product->update([
             'name' => $validated['name'],
             'code' => $validated['code'],
-            'barcode' => $validated['barcode'] ?? null,
             'description' => $validated['description'] ?? null,
             'price' => $validated['price'],
             'cost_price' => $validated['cost_price'] ?? null,
@@ -148,12 +146,6 @@ class ProductController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'code' => ['required', 'string', 'max:50', Rule::unique('products', 'code')],
-            'barcode' => [
-                'nullable',
-                'string',
-                'max:255',
-                Rule::unique('products', 'barcode')->where('company_id', $request->user()?->company_id),
-            ],
             'price' => ['required', 'numeric', 'min:0'],
             'cost_price' => ['nullable', 'numeric', 'min:0'],
             'unity' => ['required', 'string', Rule::in(array_column(ProductUnity::cases(), 'value'))],
@@ -162,7 +154,6 @@ class ProductController extends Controller
             'name.required' => 'Le nom du produit est obligatoire.',
             'code.required' => 'Le code du produit est obligatoire.',
             'code.unique' => 'Ce code est déjà utilisé.',
-            'barcode.unique' => 'Ce code-barres est déjà utilisé par un autre produit.',
             'price.required' => 'Le prix est obligatoire.',
             'price.min' => 'Le prix doit être positif.',
             'category_id.required' => 'La catégorie est obligatoire.',
@@ -172,7 +163,6 @@ class ProductController extends Controller
         $product = Product::create([
             'name' => $validated['name'],
             'code' => $validated['code'],
-            'barcode' => $validated['barcode'] ?? null,
             'price' => $validated['price'],
             'cost_price' => $validated['cost_price'] ?? null,
             'stock' => 0,

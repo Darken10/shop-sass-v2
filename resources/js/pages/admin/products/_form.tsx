@@ -1,4 +1,4 @@
-import { DollarSign, Hash, Layers, Package, Plus, ScanBarcode, Tag, Upload, X } from 'lucide-react';
+import { DollarSign, Layers, Package, Plus, Tag, Upload, X } from 'lucide-react';
 import { useCallback, useRef, useState } from 'react';
 import { store as storeCategoryAction } from '@/actions/App/Http/Controllers/Admin/ProductCategoryController';
 import { store as storeTagAction } from '@/actions/App/Http/Controllers/Admin/ProductTagController';
@@ -41,7 +41,6 @@ const UNITY_OPTIONS = [
 type ProductDefaults = {
     name?: string;
     code?: string;
-    barcode?: string;
     description?: string;
     price?: string;
     cost_price?: string;
@@ -236,31 +235,16 @@ export default function ProductForm({
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="code">
-                                        Code <span className="text-destructive">*</span>
+                                        Code (code-barres) <span className="text-destructive">*</span>
                                     </Label>
-                                    <div className="relative">
-                                        <Hash className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-                                        <Input id="code" name="code" defaultValue={defaults.code ?? ''} placeholder="PRD-00001" className="pl-8" />
-                                    </div>
-                                    <InputError message={errors.code} />
+                                    <BarcodeScanner
+                                        name="code"
+                                        defaultValue={defaults.code ?? ''}
+                                        onScan={() => {}}
+                                        placeholder="Scanner ou saisir le code…"
+                                        error={errors.code}
+                                    />
                                 </div>
-                            </div>
-
-                            {/* Barcode */}
-                            <div className="grid gap-2">
-                                <Label htmlFor="barcode">
-                                    <span className="flex items-center gap-1.5">
-                                        <ScanBarcode className="size-3.5" />
-                                        Code-barres
-                                    </span>
-                                </Label>
-                                <BarcodeScanner
-                                    name="barcode"
-                                    defaultValue={defaults.barcode ?? ''}
-                                    onScan={() => {}}
-                                    placeholder="Scanner ou saisir le code-barres…"
-                                    error={errors.barcode}
-                                />
                             </div>
 
                             <div className="grid gap-2">

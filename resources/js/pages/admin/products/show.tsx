@@ -25,7 +25,6 @@ type Product = {
     id: string;
     name: string;
     code: string;
-    barcode: string | null;
     description: string | null;
     price: string;
     cost_price: string | null;
@@ -101,15 +100,12 @@ export default function ProductShow({ product }: { product: Product }) {
                             <div>
                                 <h1 className="text-xl font-semibold">{product.name}</h1>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-sm text-muted-foreground">{product.code}</span>
+                                    <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                                        <ScanBarcode className="size-3.5" />
+                                        {product.code}
+                                    </span>
                                     <Badge variant={status.variant}>{status.label}</Badge>
                                 </div>
-                                {product.barcode && (
-                                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                        <ScanBarcode className="size-3" />
-                                        {product.barcode}
-                                    </div>
-                                )}
                             </div>
                         </div>
                     </div>
