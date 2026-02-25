@@ -1,13 +1,17 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
+    Banknote,
     Building2,
     Coins,
+    CreditCard,
     Fuel,
     LayoutGrid,
     Package,
     PackageSearch,
+    Percent,
     Repeat2,
     Replace,
+    ShoppingCart,
     Store,
     Truck,
     Users,
@@ -27,6 +31,10 @@ import { index as warehousesIndex } from '@/actions/App/Http/Controllers/Admin/L
 import { index as stocksIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/WarehouseStockController';
 import { index as productsIndex } from '@/actions/App/Http/Controllers/Admin/ProductController';
 import { index as usersIndex } from '@/actions/App/Http/Controllers/Admin/UserController';
+import { index as posIndex } from '@/actions/App/Http/Controllers/Pos/CashRegisterController';
+import { index as customersIndex } from '@/actions/App/Http/Controllers/Pos/CustomerController';
+import { index as promotionsIndex } from '@/actions/App/Http/Controllers/Pos/PromotionController';
+import { index as salesIndex, credits as creditsIndex } from '@/actions/App/Http/Controllers/Pos/SaleController';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -119,6 +127,17 @@ export function AppSidebar() {
 
     const showLogistics = logisticsItems.length > 0;
 
+    // POS items (visible per-permission)
+    const posItems: LogisticsItem[] = [
+        ...(has('open cash register') ? [{ title: 'Caisse', href: posIndex().url, icon: ShoppingCart }] : []),
+        ...(has('read sale') ? [{ title: 'Ventes', href: salesIndex().url, icon: Banknote }] : []),
+        ...(has('read sale') ? [{ title: 'Créances', href: creditsIndex().url, icon: CreditCard }] : []),
+        ...(has('read customer') ? [{ title: 'Clients', href: customersIndex().url, icon: Users }] : []),
+        ...(has('read promotion') ? [{ title: 'Promotions', href: promotionsIndex().url, icon: Percent }] : []),
+    ];
+
+    const showPos = posItems.length > 0;
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -141,6 +160,24 @@ export function AppSidebar() {
                         <SidebarGroupLabel>Logistique</SidebarGroupLabel>
                         <SidebarMenu>
                             {logisticsItems.map((item) => (
+                                <SidebarMenuItem key={item.title}>
+                                    <SidebarMenuButton asChild isActive={isCurrentUrl(item.href)}>
+                                        <Link href={item.href} prefetch>
+                                            <item.icon />
+                                            <span>{item.title}</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            ))}
+                        </SidebarMenu>
+                    </SidebarGroup>
+                )}
+
+                {showPos && (
+                    <SidebarGroup className="px-2 py-0">
+                        <SidebarGroupLabel>Point de vente</SidebarGroupLabel>
+                        <SidebarMenu>
+                            {posItems.map((item) => (
                                 <SidebarMenuItem key={item.title}>
                                     <SidebarMenuButton asChild isActive={isCurrentUrl(item.href)}>
                                         <Link href={item.href} prefetch>

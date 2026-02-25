@@ -12,6 +12,7 @@ use Spatie\LaravelData\Attributes\Validation\Min;
 use Spatie\LaravelData\Attributes\Validation\Nullable;
 use Spatie\LaravelData\Attributes\Validation\Numeric;
 use Spatie\LaravelData\Attributes\Validation\Required;
+use Spatie\LaravelData\Attributes\Validation\Sometimes;
 use Spatie\LaravelData\Attributes\Validation\StringType;
 use Spatie\LaravelData\Attributes\Validation\Uuid;
 use Spatie\LaravelData\Data;
@@ -30,10 +31,10 @@ class PromotionData extends Data
         #[Required, Numeric, Min(0)]
         public float $value,
 
-        #[Required, DateFormat('Y-m-d')]
+        #[Required, DateFormat('Y-m-d H:i:s')]
         public string $starts_at,
 
-        #[Required, DateFormat('Y-m-d'), AfterOrEqual('starts_at')]
+        #[Required, DateFormat('Y-m-d H:i:s'), AfterOrEqual('starts_at')]
         public string $ends_at,
 
         #[Required, BooleanType]
@@ -46,6 +47,7 @@ class PromotionData extends Data
         public ?string $shop_id = null,
 
         /** @var array<string> */
+        #[Sometimes]
         public array $product_ids = [],
     ) {}
 }
