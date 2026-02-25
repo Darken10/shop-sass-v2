@@ -1,5 +1,6 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { DollarSign, LogOut, ShoppingCart, Store } from 'lucide-react';
+import { useMemo } from 'react';
 import { index as posIndex, open, close } from '@/actions/App/Http/Controllers/Pos/CashRegisterController';
 import { create as terminalRoute } from '@/actions/App/Http/Controllers/Pos/SaleController';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +15,8 @@ import type { BreadcrumbItem } from '@/types';
 
 type Shop = { id: string; name: string; code: string; city: string | null };
 type CashierInfo = { id: string; name: string };
+type SalePayment = { method: string; amount: string };
+type Sale = { id: string; total: string; change_given: string; payments: SalePayment[] };
 type Session = {
     id: string;
     session_number: string;
@@ -30,7 +33,7 @@ type Session = {
     closed_at: string | null;
     shop: Shop;
     cashier: CashierInfo;
-    sales: unknown[];
+    sales: Sale[];
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -47,6 +50,21 @@ export default function PosIndex({ currentSession, shops }: { currentSession: Se
     const closeForm = useForm({
         closing_notes: '',
     });
+
+    // Compute live stats from sales data
+    const liveStats = useMemo(() => {
+        if (!currentSession?.sales) return { total: 0, cash: 0, mobileMoney: 0, bankCard: 0, bankTransfer: 0, credit: 0, changeGiven: 0 };
+        const payments = currentSession.sales.flatMap((s) => s.payments);
+        return {
+            total: currentSession.sales.reduce((sum, s) => sum + Number(s.total), 0),
+            cash: payments.filter((p) => p.method === 'cash').reduce((sum, p) => sum + Number(p.amount), 0),
+            mobileMoney: payments.filter((p) => p.method === 'mobile_money').reduce((sum, p) => sum + Number(p.amount), 0),
+            bankCard: payments.filter((p) => p.method === 'bank_card').reduce((sum, p) => sum + Number(p.amount), 0),
+            bankTransfer: payments.filter((p) => p.method === 'bank_transfer').reduce((sum, p) => sum + Number(p.amount), 0),
+            credit: payments.filter((p) => p.method === 'customer_credit').reduce((sum, p) => sum + Number(p.amount), 0),
+            changeGiven: currentSession.sales.reduce((sum, s) => sum + Number(s.change_given), 0),
+        };
+    }, [currentSession]);
 
     function handleOpenSession(e: React.FormEvent) {
         e.preventDefault();
@@ -168,7 +186,14 @@ export default function PosIndex({ currentSession, shops }: { currentSession: Se
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Total ventes</span>
                                     <span className="font-bold text-green-600">
-                                        {Number(currentSession.total_sales).toLocaleString('fr-FR')} FCFA
+                                        {liveStats.total.toLocaleString('fr-FR')} FCFA
+                                    </span>
+                                </div>
+                                <Separator />
+                                <div className="flex justify-between text-sm font-semibold">
+                                    <span>Total en caisse</span>
+                                    <span className="text-primary">
+                                        {(Number(currentSession.opening_amount) + liveStats.total).toLocaleString('fr-FR')} FCFA
                                     </span>
                                 </div>
                             </CardContent>
@@ -196,19 +221,19 @@ export default function PosIndex({ currentSession, shops }: { currentSession: Se
                                     <div className="grid grid-cols-2 gap-3">
                                         <div className="rounded-lg bg-muted p-3 text-center">
                                             <p className="text-xs text-muted-foreground">Espèces</p>
-                                            <p className="font-bold">{Number(currentSession.total_cash).toLocaleString('fr-FR')}</p>
+                                            <p className="font-bold">{liveStats.cash.toLocaleString('fr-FR')}</p>
                                         </div>
                                         <div className="rounded-lg bg-muted p-3 text-center">
                                             <p className="text-xs text-muted-foreground">Mobile Money</p>
-                                            <p className="font-bold">{Number(currentSession.total_mobile_money).toLocaleString('fr-FR')}</p>
+                                            <p className="font-bold">{liveStats.mobileMoney.toLocaleString('fr-FR')}</p>
                                         </div>
                                         <div className="rounded-lg bg-muted p-3 text-center">
                                             <p className="text-xs text-muted-foreground">Carte bancaire</p>
-                                            <p className="font-bold">{Number(currentSession.total_bank_card).toLocaleString('fr-FR')}</p>
+                                            <p className="font-bold">{liveStats.bankCard.toLocaleString('fr-FR')}</p>
                                         </div>
                                         <div className="rounded-lg bg-muted p-3 text-center">
                                             <p className="text-xs text-muted-foreground">Créances</p>
-                                            <p className="font-bold">{Number(currentSession.total_credit).toLocaleString('fr-FR')}</p>
+                                            <p className="font-bold">{liveStats.credit.toLocaleString('fr-FR')}</p>
                                         </div>
                                     </div>
                                     <div className="space-y-2">

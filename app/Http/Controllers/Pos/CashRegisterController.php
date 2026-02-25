@@ -33,7 +33,7 @@ class CashRegisterController extends Controller
             ->get();
 
         return Inertia::render('pos/index', [
-            'currentSession' => $session?->load(['shop', 'cashier', 'sales']),
+            'currentSession' => $session?->load(['shop', 'cashier', 'sales.payments']),
             'shops' => $shops,
         ]);
     }
