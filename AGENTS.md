@@ -178,18 +178,8 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - Always use proper Eloquent relationship methods with return type hints. Prefer relationship methods over raw queries or manual joins.
 - Use Eloquent models and relationships before suggesting raw database queries.
 - Avoid `DB::`; prefer `Model::query()`. Generate code that leverages Laravel's ORM capabilities rather than bypassing them.
-- **Prevent N+1 query problems** by always using eager loading with `.with()` or `.load()`. Plan relationships upfront and load all necessary relations in a single query.
+- Generate code that prevents N+1 query problems by using eager loading.
 - Use Laravel's query builder for very complex database operations.
-- **Use database transactions** for any operation that modifies two or more tables. Wrap multi-table operations in `DB::transaction()` to ensure data integrity.
-
-```php
-DB::transaction(function () {
-    // Multiple table modifications
-    $order->update([...]);
-    $inventory->decrement('quantity');
-    OrderLog::create([...]);
-});
-```
 
 ### Model Creation
 
@@ -201,10 +191,8 @@ DB::transaction(function () {
 
 ## Controllers & Validation
 
-- Use Spatie Data objects instead of Form Requests and API Resources for data transformation and type generation.
-- Spatie Data automatically generates TypeScript types via transformers for frontend consumption.
-- Create Data objects in `app/Data/` with transformers to manage data serialization across the API.
-- Check sibling Data objects to see the application's data transformation patterns.
+- Always create Form Request classes for validation rather than inline validation in controllers. Include both validation rules and custom error messages.
+- Check sibling Form Requests to see if the application uses array or string based validation rules.
 
 ## Authentication & Authorization
 
@@ -213,25 +201,6 @@ DB::transaction(function () {
 ## URL Generation
 
 - When generating links to other pages, prefer named routes and the `route()` function.
-
-## Service Layer
-
-- **Centralize all business logic in service classes** located in `app/Services/`. Controllers should be thin and delegate to services.
-- Services handle complex operations, data transformations, multi-step workflows, and business rules.
-- Service methods should have clear, descriptive names that describe the business action (e.g., `processOrderPayment()`, `calculateShippingCost()`).
-- Inject dependencies using constructor property promotion.
-
-```php
-class OrderService
-{
-    public function __construct(private StockService $stock) { }
-    
-    public function processOrder(Order $order): void
-    {
-        // Business logic here
-    }
-}
-```
 
 ## Queues
 
@@ -280,25 +249,13 @@ class OrderService
 
 # Laravel Wayfinder
 
-**Always use Wayfinder for all frontend-to-backend route calls.** Wayfinder generates TypeScript functions for Laravel routes with full type safety, eliminating the need for hardcoded route strings.
+Wayfinder generates TypeScript functions for Laravel routes. Import from `@/actions/` (controllers) or `@/routes/` (named routes).
 
-## Usage Patterns
-
-Import routes from `@/actions/` (controllers) or `@/routes/` (named routes):
-
-- **Invokable Controllers**: `import StorePost from '@/actions/.../StorePostController'; StorePost()`.
-- **Parameter Binding**: Detects route keys (`{post:slug}`) — `show({ slug: "my-post" })`.
-- **Query Merging**: `show(1, { mergeQuery: { page: 2, sort: null } })` merges with current URL, `null` removes params.
-- **Inertia Integration**: Use `.form()` with `<Form>` component or `form.submit(store())` with useForm.
-
-## Benefits
-
-- Type-safe route calls with auto-completion
-- Automatic parameter binding
-- No hardcoded URL strings in components
-- Frontend stays in sync with backend routes automatically
-
-IMPORTANT: Activate `wayfinder-development` skill whenever referencing backend routes in frontend components.
+- IMPORTANT: Activate `wayfinder-development` skill whenever referencing backend routes in frontend components.
+- Invokable Controllers: `import StorePost from '@/actions/.../StorePostController'; StorePost()`.
+- Parameter Binding: Detects route keys (`{post:slug}`) — `show({ slug: "my-post" })`.
+- Query Merging: `show(1, { mergeQuery: { page: 2, sort: null } })` merges with current URL, `null` removes params.
+- Inertia: Use `.form()` with `<Form>` component or `form.submit(store())` with useForm.
 
 === pint/core rules ===
 

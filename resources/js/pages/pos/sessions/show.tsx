@@ -14,6 +14,7 @@ import {
     Wallet,
 } from 'lucide-react';
 import { useMemo } from 'react';
+import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { sessions as sessionsIndex } from '@/actions/App/Http/Controllers/Pos/CashRegisterController';
 import { show as saleShow, receipt as saleReceipt } from '@/actions/App/Http/Controllers/Pos/SaleController';
 import { Badge } from '@/components/ui/badge';
@@ -329,22 +330,49 @@ export default function SessionShow({ session, stats }: { session: Session; stat
                             {stats.hourlySales.length === 0 ? (
                                 <p className="py-6 text-center text-sm text-muted-foreground">Aucune donnée</p>
                             ) : (
-                                <div className="flex items-end gap-2" style={{ height: 180 }}>
-                                    {stats.hourlySales.map((h) => {
-                                        const height = Math.max((h.total / maxHourlyTotal) * 100, 4);
-                                        return (
-                                            <div key={h.hour} className="flex flex-1 flex-col items-center gap-1">
-                                                <span className="text-xs font-medium">{h.count}</span>
-                                                <div
-                                                    className="w-full rounded-t bg-primary transition-all"
-                                                    style={{ height: `${height}%` }}
-                                                    title={`${formatMoney(h.total)} F`}
+                                <ResponsiveContainer width="100%" height={260}>
+                                    <BarChart data={stats.hourlySales} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
+                                        <XAxis
+                                            dataKey="hour"
+                                            tick={{ fontSize: 12 }}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            className="fill-muted-foreground"
+                                        />
+                                        <YAxis
+                                            tick={{ fontSize: 12 }}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            tickFormatter={(v: number) => formatMoney(v)}
+                                            className="fill-muted-foreground"
+                                        />
+                                        <Tooltip
+                                            cursor={{ fill: 'hsl(var(--muted) / 0.5)' }}
+                                            content={({ active, payload }) => {
+                                                if (!active || !payload?.length) return null;
+                                                const data = payload[0].payload as HourlySale;
+                                                return (
+                                                    <div className="rounded-lg border bg-background p-3 shadow-md">
+                                                        <p className="mb-1 text-sm font-semibold">{data.hour}h</p>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            {data.count} vente{data.count > 1 ? 's' : ''} &bull; {formatMoney(data.total)} F
+                                                        </p>
+                                                    </div>
+                                                );
+                                            }}
+                                        />
+                                        <Bar dataKey="total" radius={[4, 4, 0, 0]} maxBarSize={48}>
+                                            {stats.hourlySales.map((entry) => (
+                                                <Cell
+                                                    key={entry.hour}
+                                                    className="fill-primary"
+                                                    opacity={entry.total === maxHourlyTotal ? 1 : 0.75}
                                                 />
-                                                <span className="text-xs text-muted-foreground">{h.hour}</span>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
                             )}
                         </CardContent>
                     </Card>
