@@ -68,9 +68,11 @@ notes: string | null;
 is_active: boolean;
 };
 export type SupplyRequestData = {
+type: string;
 notes: string | null;
-source_warehouse_id: string;
+source_warehouse_id: string | null;
 destination_warehouse_id: string | null;
+supplier_id: string | null;
 items: Array<App.Data.Logistics.SupplyRequestItemData>;
 };
 export type SupplyRequestItemData = {
@@ -111,17 +113,69 @@ product_id: string;
 warehouse_id: string;
 };
 }
+declare namespace App.Data.Pos {
+export type CloseCashRegisterData = {
+closing_notes: string | null;
+};
+export type CreateSaleData = {
+items: Array<any>;
+payments: Array<any>;
+customer_id: string | null;
+amount_given: number | null;
+change_action: string | null;
+notes: string | null;
+};
+export type CustomerData = {
+name: string;
+phone: string | null;
+email: string | null;
+address: string | null;
+city: string | null;
+};
+export type OpenCashRegisterData = {
+opening_amount: number;
+shop_id: string;
+notes: string | null;
+};
+export type PaymentData = {
+method: App.Enums.PaymentMethod;
+amount: number;
+reference: string | null;
+notes: string | null;
+};
+export type PromotionData = {
+name: string;
+type: App.Enums.PromotionType;
+value: number;
+starts_at: string;
+ends_at: string;
+is_active: boolean;
+description: string | null;
+shop_id: string | null;
+product_ids: Array<string>;
+};
+export type SaleItemData = {
+product_id: string;
+quantity: number;
+promotion_id: string | null;
+};
+}
 declare namespace App.Enums {
+export enum CashRegisterSessionStatus { Open = 'open', Closed = 'closed' };
 export enum CompanyStatusEnum { Active = 'active', Inactive = 'inactive', Suspended = 'suspended' };
 export enum CompanyTypeEnum { ALIMENTATION = 'alimentation', BOUTIQUE = 'boutique', RESTAURANT = 'restaurant', PHARMACY = 'pharmacy', SERVICE = 'service' };
 export enum LogisticChargeType { Fuel = 'fuel', Handling = 'handling', Loading = 'loading', Unloading = 'unloading', Toll = 'toll', Packaging = 'packaging', Insurance = 'insurance', Other = 'other' };
-export enum PermissionEnum { CreateProduct = 'create product', ReadProduct = 'read product', UpdateProduct = 'update product', DeleteProduct = 'delete product', CreateProductCategory = 'create product category', ReadProductCategory = 'read product category', UpdateProductCategory = 'update product category', DeleteProductCategory = 'delete product category', CreateProductTag = 'create product tag', ReadProductTag = 'read product tag', UpdateProductTag = 'update product tag', DeleteProductTag = 'delete product tag', CreateOrder = 'create order', ReadOrder = 'read order', UpdateOrder = 'update order', DeleteOrder = 'delete order', ApproveOrder = 'approve order', CreateUser = 'create user', ReadUser = 'read user', UpdateUser = 'update user', DeleteUser = 'delete user', ManageCash = 'manage cash', ViewTransactions = 'view transactions', ManageInventory = 'manage inventory', ViewInventory = 'view inventory', ManageDelivery = 'manage delivery', ViewDelivery = 'view delivery', ViewReports = 'view reports', ViewSales = 'view sales', CreateWarehouse = 'create warehouse', ReadWarehouse = 'read warehouse', UpdateWarehouse = 'update warehouse', DeleteWarehouse = 'delete warehouse', CreateShop = 'create shop', ReadShop = 'read shop', UpdateShop = 'update shop', DeleteShop = 'delete shop', CreateSupplier = 'create supplier', ReadSupplier = 'read supplier', UpdateSupplier = 'update supplier', DeleteSupplier = 'delete supplier', CreateStock = 'create stock', ReadStock = 'read stock', UpdateStock = 'update stock', DeleteStock = 'delete stock', CreateStockMovement = 'create stock movement', ReadStockMovement = 'read stock movement', CreateSupplyRequest = 'create supply request', ReadSupplyRequest = 'read supply request', UpdateSupplyRequest = 'update supply request', ApproveSupplyRequest = 'approve supply request', CreateTransfer = 'create transfer', ReadTransfer = 'read transfer', UpdateTransfer = 'update transfer', ApproveTransfer = 'approve transfer', CreateVehicle = 'create vehicle', ReadVehicle = 'read vehicle', UpdateVehicle = 'update vehicle', DeleteVehicle = 'delete vehicle', CreateFuelLog = 'create fuel log', ReadFuelLog = 'read fuel log', CreateLogisticCharge = 'create logistic charge', ReadLogisticCharge = 'read logistic charge' };
+export enum PaymentMethod { Cash = 'cash', MobileMoney = 'mobile_money', BankCard = 'bank_card', BankTransfer = 'bank_transfer', CustomerCredit = 'customer_credit' };
+export enum PermissionEnum { CreateProduct = 'create product', ReadProduct = 'read product', UpdateProduct = 'update product', DeleteProduct = 'delete product', CreateProductCategory = 'create product category', ReadProductCategory = 'read product category', UpdateProductCategory = 'update product category', DeleteProductCategory = 'delete product category', CreateProductTag = 'create product tag', ReadProductTag = 'read product tag', UpdateProductTag = 'update product tag', DeleteProductTag = 'delete product tag', CreateOrder = 'create order', ReadOrder = 'read order', UpdateOrder = 'update order', DeleteOrder = 'delete order', ApproveOrder = 'approve order', CreateUser = 'create user', ReadUser = 'read user', UpdateUser = 'update user', DeleteUser = 'delete user', ManageCash = 'manage cash', ViewTransactions = 'view transactions', ManageInventory = 'manage inventory', ViewInventory = 'view inventory', ManageDelivery = 'manage delivery', ViewDelivery = 'view delivery', ViewReports = 'view reports', ViewSales = 'view sales', CreateWarehouse = 'create warehouse', ReadWarehouse = 'read warehouse', UpdateWarehouse = 'update warehouse', DeleteWarehouse = 'delete warehouse', CreateShop = 'create shop', ReadShop = 'read shop', UpdateShop = 'update shop', DeleteShop = 'delete shop', CreateSupplier = 'create supplier', ReadSupplier = 'read supplier', UpdateSupplier = 'update supplier', DeleteSupplier = 'delete supplier', CreateStock = 'create stock', ReadStock = 'read stock', UpdateStock = 'update stock', DeleteStock = 'delete stock', CreateStockMovement = 'create stock movement', ReadStockMovement = 'read stock movement', CreateSupplyRequest = 'create supply request', ReadSupplyRequest = 'read supply request', UpdateSupplyRequest = 'update supply request', ApproveSupplyRequest = 'approve supply request', CreateTransfer = 'create transfer', ReadTransfer = 'read transfer', UpdateTransfer = 'update transfer', ApproveTransfer = 'approve transfer', CreateVehicle = 'create vehicle', ReadVehicle = 'read vehicle', UpdateVehicle = 'update vehicle', DeleteVehicle = 'delete vehicle', CreateFuelLog = 'create fuel log', ReadFuelLog = 'read fuel log', CreateLogisticCharge = 'create logistic charge', ReadLogisticCharge = 'read logistic charge', OpenCashRegister = 'open cash register', CloseCashRegister = 'close cash register', CreateSale = 'create sale', ReadSale = 'read sale', CancelSale = 'cancel sale', ProcessCreditPayment = 'process credit payment', CreateCustomer = 'create customer', ReadCustomer = 'read customer', UpdateCustomer = 'update customer', DeleteCustomer = 'delete customer', CreatePromotion = 'create promotion', ReadPromotion = 'read promotion', UpdatePromotion = 'update promotion', DeletePromotion = 'delete promotion' };
 export enum ProductStatus { ACTIVE = 'active', INACTIVE = 'inactive' };
 export enum ProductUnity { PIECE = 'piece', KILOGRAM = 'kilogram', LITER = 'liter', METER = 'meter', SQUARE_METER = 'square_meter', CUBIC_METER = 'cubic_meter', PACK = 'pack', BOX = 'box' };
+export enum PromotionType { Percentage = 'percentage', FixedAmount = 'fixed_amount' };
 export enum RoleEnum { SuperAdmin = 'super admin', Admin = 'admin', Gestionnaire = 'gestionnaire', Caissier = 'caissier', Logisticien = 'logisticien', Magasinier = 'magasinier' };
+export enum SaleStatus { Completed = 'completed', PartiallyPaid = 'partially_paid', Unpaid = 'unpaid', Cancelled = 'cancelled' };
 export enum ShopStatus { Active = 'active', Inactive = 'inactive', UnderMaintenance = 'under_maintenance' };
 export enum StockMovementType { PurchaseEntry = 'purchase_entry', SupplierReturn = 'supplier_return', WarehouseToShop = 'warehouse_to_shop', WarehouseToWarehouse = 'warehouse_to_warehouse', ShopToCustomer = 'shop_to_customer', Loss = 'loss', Adjustment = 'adjustment' };
 export enum SupplyRequestStatus { Pending = 'pending', Approved = 'approved', InTransit = 'in_transit', Delivered = 'delivered', Rejected = 'rejected', Cancelled = 'cancelled' };
+export enum SupplyType { SupplierToWarehouse = 'supplier_to_warehouse', WarehouseToWarehouse = 'warehouse_to_warehouse' };
 export enum TransferStatus { Pending = 'pending', Approved = 'approved', InTransit = 'in_transit', Delivered = 'delivered', Rejected = 'rejected', Cancelled = 'cancelled' };
 export enum TransferType { WarehouseToShop = 'warehouse_to_shop', WarehouseToWarehouse = 'warehouse_to_warehouse' };
 export enum VehicleStatus { Active = 'active', InMaintenance = 'in_maintenance', OutOfService = 'out_of_service' };

@@ -105,6 +105,26 @@ enum PermissionEnum: string
     case CreateLogisticCharge = 'create logistic charge';
     case ReadLogisticCharge = 'read logistic charge';
 
+    // Point de vente (POS)
+    case OpenCashRegister = 'open cash register';
+    case CloseCashRegister = 'close cash register';
+    case CreateSale = 'create sale';
+    case ReadSale = 'read sale';
+    case CancelSale = 'cancel sale';
+    case ProcessCreditPayment = 'process credit payment';
+
+    // Clients
+    case CreateCustomer = 'create customer';
+    case ReadCustomer = 'read customer';
+    case UpdateCustomer = 'update customer';
+    case DeleteCustomer = 'delete customer';
+
+    // Promotions
+    case CreatePromotion = 'create promotion';
+    case ReadPromotion = 'read promotion';
+    case UpdatePromotion = 'update promotion';
+    case DeletePromotion = 'delete promotion';
+
     public static function all(): array
     {
         return array_map(fn (self $permission) => $permission->value, self::cases());
