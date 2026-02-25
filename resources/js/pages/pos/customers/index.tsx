@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
@@ -100,7 +101,7 @@ export default function CustomersIndex({ customers }: { customers: PaginatedCust
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Clients" />
 
-            <div className="mx-auto max-w-5xl space-y-4 p-6">
+            <div className="flex h-full flex-1 flex-col gap-4 p-6">
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-bold">Clients</h1>
@@ -201,6 +202,9 @@ export default function CustomersIndex({ customers }: { customers: PaginatedCust
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>{editingCustomer ? 'Modifier le client' : 'Nouveau client'}</DialogTitle>
+                        <DialogDescription>
+                            {editingCustomer ? 'Modifiez les informations du client.' : 'Ajoutez un nouveau client à votre base.'}
+                        </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>

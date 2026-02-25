@@ -63,8 +63,20 @@ export default function PromotionEdit({
         product_ids: promotion.products.map((p) => p.id),
     });
 
+    function formatDatetime(value: string): string {
+        if (!value) return '';
+        return value.replace('T', ' ') + (value.length === 16 ? ':00' : '');
+    }
+
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
+        form.transform((data) => ({
+            ...data,
+            starts_at: formatDatetime(data.starts_at),
+            ends_at: formatDatetime(data.ends_at),
+            shop_id: data.shop_id || undefined,
+            product_ids: data.product_ids.length > 0 ? data.product_ids : undefined,
+        }));
         form.put(updatePromotion(promotion.id).url);
     }
 
@@ -79,7 +91,7 @@ export default function PromotionEdit({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Modifier ${promotion.name}`} />
 
-            <div className="mx-auto max-w-2xl space-y-6 p-6">
+            <div className="flex h-full flex-1 flex-col gap-6 p-6">
                 <div className="flex items-center gap-3">
                     <Button variant="ghost" size="icon" asChild>
                         <Link href={promotionsIndex().url}>

@@ -32,6 +32,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import AppLayout from '@/layouts/app-layout';
+import type { BreadcrumbItem } from '@/types';
 
 type Product = {
     id: string;
@@ -74,7 +76,7 @@ type Session = {
     shop: { id: string; name: string; code: string };
 };
 
-type PaymentMethodType = { value: string; label?: string };
+type PaymentMethodType = { value: string; label: string };
 
 type CartItem = {
     product: Product;
@@ -321,11 +323,17 @@ export default function PosTerminal({
             });
     }
 
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: 'Dashboard', href: '/dashboard' },
+        { title: 'Point de vente', href: '/pos' },
+        { title: 'Terminal', href: '#' },
+    ];
+
     return (
-        <>
+        <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Terminal de vente" />
 
-            <div className="flex h-screen flex-col overflow-hidden bg-background">
+            <div className="flex h-full flex-1 flex-col overflow-hidden">
                 {/* Top bar */}
                 <div className="flex items-center justify-between border-b bg-card px-4 py-2">
                     <div className="flex items-center gap-3">
@@ -569,7 +577,7 @@ export default function PosTerminal({
                                         <SelectContent>
                                             {paymentMethods.map((pm) => (
                                                 <SelectItem key={pm.value} value={pm.value}>
-                                                    {methodLabels[pm.value] ?? pm.value}
+                                                    {pm.label}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -734,6 +742,6 @@ export default function PosTerminal({
                     </div>
                 </DialogContent>
             </Dialog>
-        </>
+        </AppLayout>
     );
 }

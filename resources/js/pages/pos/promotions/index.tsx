@@ -47,7 +47,7 @@ export default function PromotionsIndex({ promotions }: { promotions: PaginatedP
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Promotions" />
 
-            <div className="mx-auto max-w-5xl space-y-4 p-6">
+            <div className="flex h-full flex-1 flex-col gap-4 p-6">
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-bold">Promotions</h1>

@@ -58,7 +58,7 @@ export default function SalesIndex({ sales }: { sales: PaginatedSales }) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Historique des ventes" />
 
-            <div className="mx-auto max-w-5xl space-y-4 p-6">
+            <div className="flex h-full flex-1 flex-col gap-4 p-6">
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold">Historique des ventes</h1>
                     <Badge variant="outline">{sales.total} vente{sales.total > 1 ? 's' : ''}</Badge>

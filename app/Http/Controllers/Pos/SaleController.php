@@ -8,7 +8,6 @@ use App\Enums\PromotionType;
 use App\Enums\SaleStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Logistics\ShopStock;
-use App\Models\Pos\CashRegisterSession;
 use App\Models\Pos\Customer;
 use App\Models\Pos\Promotion;
 use App\Models\Pos\Sale;
@@ -77,7 +76,10 @@ class SaleController extends Controller
             'shopStocks' => $shopStocks,
             'promotions' => $activePromotions,
             'customers' => $customers,
-            'paymentMethods' => \App\Enums\PaymentMethod::cases(),
+            'paymentMethods' => collect(\App\Enums\PaymentMethod::cases())->map(fn ($m) => [
+                'value' => $m->value,
+                'label' => $m->label(),
+            ]),
             'promotionTypes' => PromotionType::cases(),
         ]);
     }

@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Data\Pos\CreateSaleData;
 use App\Data\Pos\PaymentData;
 use App\Data\Pos\SaleItemData;
-use App\Enums\PaymentMethod;
 use App\Enums\SaleStatus;
 use App\Enums\StockMovementType;
 use App\Models\Logistics\ShopStock;
@@ -224,14 +223,16 @@ class SaleService
      */
     private function decrementStock(array $items, string $shopId, Sale $sale, User $cashier): void
     {
-        foreach ($items as $item) {
+        foreach ($items as $index => $item) {
             ShopStock::withoutGlobalScopes()
                 ->where('shop_id', $shopId)
                 ->where('product_id', $item['product_id'])
                 ->decrement('quantity', $item['quantity']);
 
+            $suffix = count($items) > 1 ? '-'.($index + 1) : '';
+
             StockMovement::withoutGlobalScopes()->create([
-                'reference' => 'VNT-'.$sale->reference,
+                'reference' => 'MVT-'.$sale->reference.$suffix,
                 'type' => StockMovementType::ShopToCustomer,
                 'quantity' => $item['quantity'],
                 'reason' => 'Vente POS - '.$sale->reference,

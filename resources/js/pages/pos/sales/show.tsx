@@ -109,7 +109,7 @@ export default function SaleShow({ sale }: { sale: Sale }) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Vente ${sale.reference}`} />
 
-            <div className="mx-auto max-w-4xl space-y-6 p-6">
+            <div className="flex h-full flex-1 flex-col gap-6 p-6">
                 {/* Header */}
                 <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">

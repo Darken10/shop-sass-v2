@@ -92,7 +92,7 @@ export default function SessionSummary({ session }: { session: Session }) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Session #${session.session_number}`} />
 
-            <div className="mx-auto max-w-4xl space-y-6 p-6">
+            <div className="flex h-full flex-1 flex-col gap-6 p-6">
                 {/* Header */}
                 <div className="flex items-start justify-between">
                     <div>
