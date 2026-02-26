@@ -19,11 +19,21 @@ class SupplyRequestFactory extends Factory
             'reference' => 'SR-'.strtoupper(fake()->unique()->bothify('??######')),
             'status' => fake()->randomElement(SupplyRequestStatus::cases()),
             'notes' => fake()->optional()->sentence(),
+            'company_bears_costs' => false,
+            'driver_name' => null,
+            'driver_phone' => null,
             'source_warehouse_id' => Warehouse::factory(),
             'destination_warehouse_id' => Warehouse::factory(),
             'company_id' => Company::factory(),
             'created_by' => User::factory(),
         ];
+    }
+
+    public function draft(): static
+    {
+        return $this->state(fn () => [
+            'status' => SupplyRequestStatus::Draft,
+        ]);
     }
 
     public function pending(): static
@@ -49,6 +59,15 @@ class SupplyRequestFactory extends Factory
             'approved_at' => now()->subDay(),
             'delivered_at' => now(),
             'approved_by' => User::factory(),
+        ]);
+    }
+
+    public function withCosts(): static
+    {
+        return $this->state(fn () => [
+            'company_bears_costs' => true,
+            'driver_name' => fake()->name(),
+            'driver_phone' => fake()->phoneNumber(),
         ]);
     }
 }

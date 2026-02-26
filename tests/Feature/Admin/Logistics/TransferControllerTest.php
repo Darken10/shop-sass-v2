@@ -138,6 +138,59 @@ it('creates a warehouse-to-warehouse transfer', function () {
     ]);
 });
 
+it('creates a draft transfer without stock validation', function () {
+    actingAs($this->admin)
+        ->post('/admin/logistics/transfers', [
+            'type' => TransferType::WarehouseToWarehouse->value,
+            'source_warehouse_id' => $this->warehouseA->id,
+            'destination_warehouse_id' => $this->warehouseB->id,
+            'notes' => 'Draft test',
+            'is_draft' => true,
+            'items' => [
+                [
+                    'product_id' => $this->product->id,
+                    'quantity_requested' => 9999,
+                ],
+            ],
+        ])
+        ->assertRedirect();
+
+    assertDatabaseHas('transfers', [
+        'status' => TransferStatus::Draft->value,
+        'company_id' => $this->company->id,
+    ]);
+});
+
+it('creates a transfer with company_bears_costs and charges', function () {
+    actingAs($this->admin)
+        ->post('/admin/logistics/transfers', [
+            'type' => TransferType::WarehouseToWarehouse->value,
+            'source_warehouse_id' => $this->warehouseA->id,
+            'destination_warehouse_id' => $this->warehouseB->id,
+            'company_bears_costs' => true,
+            'driver_name' => 'Jean Dupont',
+            'driver_phone' => '0612345678',
+            'items' => [
+                ['product_id' => $this->product->id, 'quantity_requested' => 10],
+            ],
+            'charges' => [
+                ['label' => 'Carburant', 'type' => 'fuel', 'amount' => 5000],
+            ],
+        ])
+        ->assertRedirect();
+
+    $transfer = Transfer::withoutGlobalScopes()->latest()->first();
+
+    expect($transfer->company_bears_costs)->toBeTrue()
+        ->and($transfer->driver_name)->toBe('Jean Dupont');
+
+    assertDatabaseHas('logistic_charges', [
+        'transfer_id' => $transfer->id,
+        'label' => 'Carburant',
+        'amount' => 5000,
+    ]);
+});
+
 it('shows a transfer', function () {
     $transfer = Transfer::withoutGlobalScopes()->create([
         'reference' => 'TRF-TESTABCD',
@@ -191,11 +244,39 @@ it('prevents accessing transfers from another company', function () {
         ->assertNotFound();
 });
 
-// --- Delivery stock update ---
+// --- Ship ---
 
-it('delivering a warehouse-to-shop transfer decrements warehouse stock and adds to shop stock', function () {
+it('shipping an approved transfer sets quantity_delivered and marks in_transit', function () {
     $transfer = Transfer::withoutGlobalScopes()->create([
-        'reference' => 'TRF-DLVSHOP01',
+        'reference' => 'TRF-SHIP01',
+        'type' => TransferType::WarehouseToShop,
+        'status' => TransferStatus::Approved,
+        'approved_at' => now(),
+        'source_warehouse_id' => $this->warehouseA->id,
+        'destination_shop_id' => $this->shop->id,
+        'company_id' => $this->company->id,
+        'created_by' => $this->admin->id,
+    ]);
+
+    $item = TransferItem::withoutGlobalScopes()->create([
+        'transfer_id' => $transfer->id,
+        'product_id' => $this->product->id,
+        'quantity_requested' => 30,
+    ]);
+
+    actingAs($this->admin)
+        ->post("/admin/logistics/transfers/{$transfer->id}/ship")
+        ->assertRedirect();
+
+    expect($transfer->fresh()->status)->toBe(TransferStatus::InTransit);
+    expect($item->fresh()->quantity_delivered)->toBe(30);
+});
+
+// --- Deliver ---
+
+it('delivering a transfer marks it as delivered without moving stock', function () {
+    $transfer = Transfer::withoutGlobalScopes()->create([
+        'reference' => 'TRF-DLVR01',
         'type' => TransferType::WarehouseToShop,
         'status' => TransferStatus::InTransit,
         'source_warehouse_id' => $this->warehouseA->id,
@@ -212,6 +293,49 @@ it('delivering a warehouse-to-shop transfer decrements warehouse stock and adds 
 
     actingAs($this->admin)
         ->post("/admin/logistics/transfers/{$transfer->id}/deliver")
+        ->assertRedirect();
+
+    expect($transfer->fresh()->status)->toBe(TransferStatus::Delivered);
+
+    // Stock should NOT change on deliver (it happens on receive)
+    $warehouseStock = WarehouseStock::withoutGlobalScopes()
+        ->where('product_id', $this->product->id)
+        ->where('warehouse_id', $this->warehouseA->id)
+        ->first();
+
+    expect($warehouseStock->quantity)->toBe(100);
+});
+
+// --- Receive ---
+
+it('receiving a warehouse-to-shop transfer decrements warehouse stock and adds to shop stock', function () {
+    $transfer = Transfer::withoutGlobalScopes()->create([
+        'reference' => 'TRF-RCVSHOP01',
+        'type' => TransferType::WarehouseToShop,
+        'status' => TransferStatus::Delivered,
+        'source_warehouse_id' => $this->warehouseA->id,
+        'destination_shop_id' => $this->shop->id,
+        'company_id' => $this->company->id,
+        'created_by' => $this->admin->id,
+    ]);
+
+    $item = TransferItem::withoutGlobalScopes()->create([
+        'transfer_id' => $transfer->id,
+        'product_id' => $this->product->id,
+        'quantity_requested' => 30,
+        'quantity_delivered' => 30,
+    ]);
+
+    actingAs($this->admin)
+        ->post("/admin/logistics/transfers/{$transfer->id}/receive", [
+            'items' => [
+                [
+                    'item_id' => $item->id,
+                    'quantity_received' => 30,
+                    'discrepancy_note' => null,
+                ],
+            ],
+        ])
         ->assertRedirect();
 
     // Entrepôt source : 100 - 30 = 70
@@ -231,13 +355,12 @@ it('delivering a warehouse-to-shop transfer decrements warehouse stock and adds 
     expect($shopStock)->not->toBeNull();
     expect($shopStock->quantity)->toBe(30);
 
-    // Statut du transfert mis à jour
-    expect($transfer->fresh()->status)->toBe(TransferStatus::Delivered);
+    expect($transfer->fresh()->status)->toBe(TransferStatus::Received);
 });
 
-it('delivering a warehouse-to-warehouse transfer updates both warehouse stocks', function () {
+it('receiving a warehouse-to-warehouse transfer updates both warehouse stocks', function () {
     $transfer = Transfer::withoutGlobalScopes()->create([
-        'reference' => 'TRF-DLVWWH01',
+        'reference' => 'TRF-RCVWWH01',
         'type' => TransferType::WarehouseToWarehouse,
         'status' => TransferStatus::InTransit,
         'source_warehouse_id' => $this->warehouseA->id,
@@ -246,17 +369,25 @@ it('delivering a warehouse-to-warehouse transfer updates both warehouse stocks',
         'created_by' => $this->admin->id,
     ]);
 
-    TransferItem::withoutGlobalScopes()->create([
+    $item = TransferItem::withoutGlobalScopes()->create([
         'transfer_id' => $transfer->id,
         'product_id' => $this->product->id,
         'quantity_requested' => 25,
+        'quantity_delivered' => 25,
     ]);
 
     actingAs($this->admin)
-        ->post("/admin/logistics/transfers/{$transfer->id}/deliver")
+        ->post("/admin/logistics/transfers/{$transfer->id}/receive", [
+            'items' => [
+                [
+                    'item_id' => $item->id,
+                    'quantity_received' => 25,
+                    'discrepancy_note' => null,
+                ],
+            ],
+        ])
         ->assertRedirect();
 
-    // Entrepôt source : 100 - 25 = 75
     $sourceStock = WarehouseStock::withoutGlobalScopes()
         ->where('product_id', $this->product->id)
         ->where('warehouse_id', $this->warehouseA->id)
@@ -264,7 +395,6 @@ it('delivering a warehouse-to-warehouse transfer updates both warehouse stocks',
 
     expect($sourceStock->quantity)->toBe(75);
 
-    // Entrepôt destination : 0 + 25 = 25
     $destStock = WarehouseStock::withoutGlobalScopes()
         ->where('product_id', $this->product->id)
         ->where('warehouse_id', $this->warehouseB->id)
@@ -273,16 +403,137 @@ it('delivering a warehouse-to-warehouse transfer updates both warehouse stocks',
     expect($destStock)->not->toBeNull();
     expect($destStock->quantity)->toBe(25);
 
+    expect($transfer->fresh()->status)->toBe(TransferStatus::Received);
+});
+
+it('receiving a transfer creates stock movement records', function () {
+    $transfer = Transfer::withoutGlobalScopes()->create([
+        'reference' => 'TRF-RCVMOV01',
+        'type' => TransferType::WarehouseToShop,
+        'status' => TransferStatus::Delivered,
+        'source_warehouse_id' => $this->warehouseA->id,
+        'destination_shop_id' => $this->shop->id,
+        'company_id' => $this->company->id,
+        'created_by' => $this->admin->id,
+    ]);
+
+    $item = TransferItem::withoutGlobalScopes()->create([
+        'transfer_id' => $transfer->id,
+        'product_id' => $this->product->id,
+        'quantity_requested' => 10,
+        'quantity_delivered' => 10,
+    ]);
+
+    actingAs($this->admin)
+        ->post("/admin/logistics/transfers/{$transfer->id}/receive", [
+            'items' => [
+                [
+                    'item_id' => $item->id,
+                    'quantity_received' => 10,
+                    'discrepancy_note' => null,
+                ],
+            ],
+        ])
+        ->assertRedirect();
+
+    assertDatabaseHas('stock_movements', [
+        'transfer_id' => $transfer->id,
+        'product_id' => $this->product->id,
+        'quantity' => 10,
+        'source_warehouse_id' => $this->warehouseA->id,
+        'destination_shop_id' => $this->shop->id,
+    ]);
+});
+
+it('receiving with discrepancy requires a mandatory note', function () {
+    $transfer = Transfer::withoutGlobalScopes()->create([
+        'reference' => 'TRF-DISC01',
+        'type' => TransferType::WarehouseToShop,
+        'status' => TransferStatus::Delivered,
+        'source_warehouse_id' => $this->warehouseA->id,
+        'destination_shop_id' => $this->shop->id,
+        'company_id' => $this->company->id,
+        'created_by' => $this->admin->id,
+    ]);
+
+    $item = TransferItem::withoutGlobalScopes()->create([
+        'transfer_id' => $transfer->id,
+        'product_id' => $this->product->id,
+        'quantity_requested' => 30,
+        'quantity_delivered' => 30,
+    ]);
+
+    // Without discrepancy note — should fail
+    actingAs($this->admin)
+        ->post("/admin/logistics/transfers/{$transfer->id}/receive", [
+            'items' => [
+                [
+                    'item_id' => $item->id,
+                    'quantity_received' => 25,
+                    'discrepancy_note' => null,
+                ],
+            ],
+        ])
+        ->assertRedirect()
+        ->assertSessionHasErrors();
+
     expect($transfer->fresh()->status)->toBe(TransferStatus::Delivered);
 });
 
-it('delivering a transfer creates stock movement records', function () {
+it('receiving with discrepancy succeeds when note is provided', function () {
     $transfer = Transfer::withoutGlobalScopes()->create([
-        'reference' => 'TRF-DLVMOV01',
+        'reference' => 'TRF-DISC02',
         'type' => TransferType::WarehouseToShop,
-        'status' => TransferStatus::InTransit,
+        'status' => TransferStatus::Delivered,
         'source_warehouse_id' => $this->warehouseA->id,
         'destination_shop_id' => $this->shop->id,
+        'company_id' => $this->company->id,
+        'created_by' => $this->admin->id,
+    ]);
+
+    $item = TransferItem::withoutGlobalScopes()->create([
+        'transfer_id' => $transfer->id,
+        'product_id' => $this->product->id,
+        'quantity_requested' => 30,
+        'quantity_delivered' => 30,
+    ]);
+
+    actingAs($this->admin)
+        ->post("/admin/logistics/transfers/{$transfer->id}/receive", [
+            'items' => [
+                [
+                    'item_id' => $item->id,
+                    'quantity_received' => 25,
+                    'discrepancy_note' => '5 articles endommagés pendant le transport',
+                ],
+            ],
+        ])
+        ->assertRedirect();
+
+    expect($transfer->fresh()->status)->toBe(TransferStatus::Received);
+
+    $item->refresh();
+    expect($item->quantity_received)->toBe(25)
+        ->and($item->discrepancy_note)->toBe('5 articles endommagés pendant le transport');
+
+    // Stock uses received qty (25), not delivered (30)
+    $warehouseStock = WarehouseStock::withoutGlobalScopes()
+        ->where('product_id', $this->product->id)
+        ->where('warehouse_id', $this->warehouseA->id)
+        ->first();
+
+    expect($warehouseStock->quantity)->toBe(75);
+});
+
+// --- Submit draft ---
+
+it('submits a draft transfer to pending', function () {
+    $transfer = Transfer::withoutGlobalScopes()->create([
+        'reference' => 'TRF-DRAFT01',
+        'type' => TransferType::WarehouseToWarehouse,
+        'status' => TransferStatus::Draft,
+        'source_warehouse_id' => $this->warehouseA->id,
+        'destination_warehouse_id' => $this->warehouseB->id,
         'company_id' => $this->company->id,
         'created_by' => $this->admin->id,
     ]);
@@ -294,16 +545,35 @@ it('delivering a transfer creates stock movement records', function () {
     ]);
 
     actingAs($this->admin)
-        ->post("/admin/logistics/transfers/{$transfer->id}/deliver")
+        ->post("/admin/logistics/transfers/{$transfer->id}/submit")
         ->assertRedirect();
 
-    assertDatabaseHas('stock_movements', [
+    expect($transfer->fresh()->status)->toBe(TransferStatus::Pending);
+});
+
+it('prevents submitting a draft when stock is insufficient', function () {
+    $transfer = Transfer::withoutGlobalScopes()->create([
+        'reference' => 'TRF-DRAFT02',
+        'type' => TransferType::WarehouseToWarehouse,
+        'status' => TransferStatus::Draft,
+        'source_warehouse_id' => $this->warehouseA->id,
+        'destination_warehouse_id' => $this->warehouseB->id,
+        'company_id' => $this->company->id,
+        'created_by' => $this->admin->id,
+    ]);
+
+    TransferItem::withoutGlobalScopes()->create([
         'transfer_id' => $transfer->id,
         'product_id' => $this->product->id,
-        'quantity' => 10,
-        'source_warehouse_id' => $this->warehouseA->id,
-        'destination_shop_id' => $this->shop->id,
+        'quantity_requested' => 9999,
     ]);
+
+    actingAs($this->admin)
+        ->post("/admin/logistics/transfers/{$transfer->id}/submit")
+        ->assertRedirect()
+        ->assertSessionHas('error');
+
+    expect($transfer->fresh()->status)->toBe(TransferStatus::Draft);
 });
 
 it('prevents creating a transfer when stock is insufficient', function () {
@@ -324,36 +594,4 @@ it('prevents creating a transfer when stock is insufficient', function () {
         ->assertSessionHasErrors('items');
 
     expect(Transfer::withoutGlobalScopes()->count())->toBe(0);
-});
-
-it('prevents delivering a transfer when stock is insufficient', function () {
-    $transfer = Transfer::withoutGlobalScopes()->create([
-        'reference' => 'TRF-INSUF01',
-        'type' => TransferType::WarehouseToShop,
-        'status' => TransferStatus::InTransit,
-        'source_warehouse_id' => $this->warehouseA->id,
-        'destination_shop_id' => $this->shop->id,
-        'company_id' => $this->company->id,
-        'created_by' => $this->admin->id,
-    ]);
-
-    TransferItem::withoutGlobalScopes()->create([
-        'transfer_id' => $transfer->id,
-        'product_id' => $this->product->id,
-        'quantity_requested' => 300,
-    ]);
-
-    actingAs($this->admin)
-        ->post("/admin/logistics/transfers/{$transfer->id}/deliver")
-        ->assertRedirect()
-        ->assertSessionHas('error');
-
-    expect($transfer->fresh()->status)->toBe(TransferStatus::InTransit);
-
-    $warehouseStock = WarehouseStock::withoutGlobalScopes()
-        ->where('product_id', $this->product->id)
-        ->where('warehouse_id', $this->warehouseA->id)
-        ->first();
-
-    expect($warehouseStock->quantity)->toBe(100);
 });

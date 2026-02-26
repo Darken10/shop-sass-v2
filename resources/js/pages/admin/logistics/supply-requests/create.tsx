@@ -49,13 +49,19 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 let nextKey = 1;
+let nextChargeKey = 1;
 
-export default function SupplyRequestsCreate({ warehouses, suppliers, products: initialProducts, categories }: Props) {
+export default function SupplyRequestsCreate({ warehouses, suppliers, products: initialProducts, categories, chargeTypes }: Props) {
     const [type, setType] = useState('');
     const [supplierId, setSupplierId] = useState('');
     const [sourceId, setSourceId] = useState('');
     const [destId, setDestId] = useState('');
+    const [driverName, setDriverName] = useState('');
+    const [driverPhone, setDriverPhone] = useState('');
+    const [companyBearsCosts, setCompanyBearsCosts] = useState(false);
     const [items, setItems] = useState<ItemRow[]>([{ key: nextKey++, product_id: '', quantity_requested: '1' }]);
+    const [charges, setCharges] = useState<ChargeRow[]>([]);
+    const [isDraft, setIsDraft] = useState(false);
     const [products, setProducts] = useState<Product[]>(initialProducts);
 
     function addItem() {
@@ -68,6 +74,18 @@ export default function SupplyRequestsCreate({ warehouses, suppliers, products: 
 
     function updateItem(key: number, field: keyof Omit<ItemRow, 'key'>, value: string) {
         setItems((prev) => prev.map((item) => (item.key === key ? { ...item, [field]: value } : item)));
+    }
+
+    function addCharge() {
+        setCharges((prev) => [...prev, { key: nextChargeKey++, label: '', type: '', amount: '', notes: '' }]);
+    }
+
+    function removeCharge(key: number) {
+        setCharges((prev) => prev.filter((c) => c.key !== key));
+    }
+
+    function updateCharge(key: number, field: keyof Omit<ChargeRow, 'key'>, value: string) {
+        setCharges((prev) => prev.map((c) => (c.key === key ? { ...c, [field]: value } : c)));
     }
 
     function handleProductCreated(product: { id: string; name: string; code: string }) {
@@ -214,6 +232,119 @@ export default function SupplyRequestsCreate({ warehouses, suppliers, products: 
                                                 />
                                                 <InputError message={errors.notes} />
                                             </div>
+
+                                            <Separator />
+
+                                            {/* Transport details */}
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid gap-2">
+                                                    <Label htmlFor="driver_name">Nom du chauffeur</Label>
+                                                    <Input
+                                                        id="driver_name"
+                                                        name="driver_name"
+                                                        value={driverName}
+                                                        onChange={(e) => setDriverName(e.target.value)}
+                                                        placeholder="Nom du chauffeur"
+                                                    />
+                                                    <InputError message={errors.driver_name} />
+                                                </div>
+                                                <div className="grid gap-2">
+                                                    <Label htmlFor="driver_phone">Téléphone du chauffeur</Label>
+                                                    <Input
+                                                        id="driver_phone"
+                                                        name="driver_phone"
+                                                        value={driverPhone}
+                                                        onChange={(e) => setDriverPhone(e.target.value)}
+                                                        placeholder="Numéro de téléphone"
+                                                    />
+                                                    <InputError message={errors.driver_phone} />
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-2">
+                                                <Checkbox
+                                                    id="company_bears_costs"
+                                                    checked={companyBearsCosts}
+                                                    onCheckedChange={(v) => setCompanyBearsCosts(v === true)}
+                                                />
+                                                <Label htmlFor="company_bears_costs" className="font-normal">
+                                                    L'entreprise prend en charge les frais de transport
+                                                </Label>
+                                                <input type="hidden" name="company_bears_costs" value={companyBearsCosts ? '1' : '0'} />
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                )}
+
+                                {/* Logistic charges */}
+                                {companyBearsCosts && (
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center justify-between text-base">
+                                                <span className="flex items-center gap-2">
+                                                    <CircleDollarSign className="size-4" />
+                                                    Frais logistiques ({charges.length})
+                                                </span>
+                                                <Button type="button" variant="outline" size="sm" onClick={addCharge}>
+                                                    <Plus className="size-4" />
+                                                    Ajouter
+                                                </Button>
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-4">
+                                            {charges.length === 0 && (
+                                                <p className="text-sm text-muted-foreground text-center py-4">
+                                                    Aucun frais ajouté. Cliquez sur « Ajouter » pour enregistrer des frais logistiques.
+                                                </p>
+                                            )}
+                                            {charges.map((charge, idx) => (
+                                                <div key={charge.key} className="flex items-end gap-3 rounded-lg border bg-muted/20 p-3">
+                                                    <div className="grid flex-1 gap-2">
+                                                        <Label htmlFor={`charge-${idx}-label`}>Libellé</Label>
+                                                        <Input
+                                                            id={`charge-${idx}-label`}
+                                                            name={`charges[${idx}][label]`}
+                                                            value={charge.label}
+                                                            onChange={(e) => updateCharge(charge.key, 'label', e.target.value)}
+                                                            placeholder="Ex: Carburant Cotonou-Parakou"
+                                                        />
+                                                    </div>
+                                                    <div className="grid w-40 gap-2">
+                                                        <Label htmlFor={`charge-${idx}-type`}>Type</Label>
+                                                        <Select value={charge.type} onValueChange={(v) => updateCharge(charge.key, 'type', v)}>
+                                                            <SelectTrigger id={`charge-${idx}-type`}>
+                                                                <SelectValue placeholder="Type" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {(chargeTypes ?? []).map((ct) => (
+                                                                    <SelectItem key={ct.value} value={ct.value}>{ct.label}</SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <input type="hidden" name={`charges[${idx}][type]`} value={charge.type} />
+                                                    </div>
+                                                    <div className="grid w-28 gap-2">
+                                                        <Label htmlFor={`charge-${idx}-amount`}>Montant</Label>
+                                                        <Input
+                                                            id={`charge-${idx}-amount`}
+                                                            name={`charges[${idx}][amount]`}
+                                                            type="number"
+                                                            min="0"
+                                                            value={charge.amount}
+                                                            onChange={(e) => updateCharge(charge.key, 'amount', e.target.value)}
+                                                        />
+                                                    </div>
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="mb-0.5 size-9 shrink-0 text-destructive hover:text-destructive"
+                                                        onClick={() => removeCharge(charge.key)}
+                                                    >
+                                                        <MinusCircle className="size-4" />
+                                                    </Button>
+                                                </div>
+                                            ))}
                                         </CardContent>
                                     </Card>
                                 )}
@@ -293,8 +424,22 @@ export default function SupplyRequestsCreate({ warehouses, suppliers, products: 
                                 <Button type="button" variant="outline" asChild>
                                     <a href={requestsIndex().url}>Annuler</a>
                                 </Button>
-                                <Button type="submit" disabled={processing || !type}>
-                                    {processing ? 'Enregistrement…' : 'Soumettre la demande'}
+                                <input type="hidden" name="is_draft" value={isDraft ? '1' : '0'} />
+                                <Button
+                                    type="submit"
+                                    variant="secondary"
+                                    disabled={processing}
+                                    onClick={() => setIsDraft(true)}
+                                >
+                                    <Save className="size-4" />
+                                    {processing && isDraft ? 'Enregistrement…' : 'Sauvegarder brouillon'}
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    disabled={processing || !type}
+                                    onClick={() => setIsDraft(false)}
+                                >
+                                    {processing && !isDraft ? 'Enregistrement…' : 'Soumettre la demande'}
                                 </Button>
                             </div>
                         </>
