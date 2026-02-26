@@ -27,6 +27,7 @@ class LogisticCharge extends Model
         'notes',
         'stock_movement_id',
         'supply_request_id',
+        'transfer_id',
         'company_id',
         'created_by',
     ];
@@ -47,6 +48,11 @@ class LogisticCharge extends Model
     public function supplyRequest(): BelongsTo
     {
         return $this->belongsTo(SupplyRequest::class);
+    }
+
+    public function transfer(): BelongsTo
+    {
+        return $this->belongsTo(Transfer::class);
     }
 
     public function createdBy(): BelongsTo

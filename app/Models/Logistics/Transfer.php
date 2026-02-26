@@ -27,14 +27,19 @@ class Transfer extends Model
         'type',
         'status',
         'notes',
+        'company_bears_costs',
+        'driver_name',
+        'driver_phone',
         'approved_at',
         'shipped_at',
         'delivered_at',
+        'received_at',
         'source_warehouse_id',
         'destination_warehouse_id',
         'destination_shop_id',
         'vehicle_id',
         'approved_by',
+        'received_by',
         'company_id',
         'created_by',
     ];
@@ -44,9 +49,11 @@ class Transfer extends Model
         return [
             'type' => TransferType::class,
             'status' => TransferStatus::class,
+            'company_bears_costs' => 'boolean',
             'approved_at' => 'datetime',
             'shipped_at' => 'datetime',
             'delivered_at' => 'datetime',
+            'received_at' => 'datetime',
         ];
     }
 
@@ -85,8 +92,23 @@ class Transfer extends Model
         return $this->hasMany(TransferItem::class);
     }
 
+    public function receivedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'received_by');
+    }
+
     public function stockMovements(): HasMany
     {
         return $this->hasMany(StockMovement::class);
+    }
+
+    public function logisticCharges(): HasMany
+    {
+        return $this->hasMany(LogisticCharge::class);
+    }
+
+    public function fuelLogs(): HasMany
+    {
+        return $this->hasMany(FuelLog::class);
     }
 }

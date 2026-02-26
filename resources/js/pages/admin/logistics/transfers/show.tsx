@@ -1,7 +1,23 @@
 import { Head, router } from '@inertiajs/react';
-import { ArrowLeft, Calendar, Check, Hash, Package, Replace, Ship, Truck, User, Warehouse as WarehouseIcon, X } from 'lucide-react';
+import {
+    AlertTriangle,
+    ArrowLeft,
+    Calendar,
+    Check,
+    CircleDollarSign,
+    Hash,
+    Package,
+    PackageCheck,
+    Replace,
+    Send,
+    Ship,
+    Truck,
+    User,
+    Warehouse as WarehouseIcon,
+    X,
+} from 'lucide-react';
 import { useState } from 'react';
-import { index as transfersIndex, approve, ship, deliver, reject } from '@/actions/App/Http/Controllers/Admin/Logistics/TransferController';
+import { index as transfersIndex, approve, ship, deliver, receive, reject, submit } from '@/actions/App/Http/Controllers/Admin/Logistics/TransferController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +29,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -21,7 +39,17 @@ type Item = {
     id: string;
     quantity_requested: number;
     quantity_delivered: number | null;
+    quantity_received: number | null;
+    discrepancy_note: string | null;
     product: { id: string; name: string; code: string };
+};
+
+type LogisticCharge = {
+    id: string;
+    label: string;
+    type: string;
+    amount: number;
+    notes: string | null;
 };
 
 type Transfer = {
@@ -30,16 +58,22 @@ type Transfer = {
     type: 'warehouse_to_shop' | 'warehouse_to_warehouse';
     status: string;
     notes: string | null;
+    company_bears_costs: boolean;
+    driver_name: string | null;
+    driver_phone: string | null;
     approved_at: string | null;
     shipped_at: string | null;
     delivered_at: string | null;
+    received_at: string | null;
     source_warehouse: { id: string; name: string; code: string } | null;
     destination_warehouse: { id: string; name: string; code: string } | null;
     destination_shop: { id: string; name: string; code: string } | null;
     vehicle: { id: string; name: string; registration_number: string } | null;
     approved_by: { id: string; name: string } | null;
+    received_by: { id: string; name: string } | null;
     created_by: { id: string; name: string } | null;
     items: Item[];
+    logistic_charges: LogisticCharge[];
     created_at: string;
     updated_at: string;
 };
@@ -50,17 +84,34 @@ const typeLabels: Record<string, string> = {
 };
 
 const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+    draft: { label: 'Brouillon', variant: 'outline' },
     pending: { label: 'En attente', variant: 'outline' },
     approved: { label: 'Approuvé', variant: 'default' },
     in_transit: { label: 'En transit', variant: 'secondary' },
     delivered: { label: 'Livré', variant: 'default' },
+    received: { label: 'Réceptionné', variant: 'default' },
     rejected: { label: 'Rejeté', variant: 'destructive' },
     cancelled: { label: 'Annulé', variant: 'secondary' },
 };
 
+type ReceiveItem = {
+    item_id: string;
+    quantity_received: string;
+    discrepancy_note: string;
+};
+
 export default function TransferShow({ transfer }: { transfer: Transfer }) {
-    const [confirmAction, setConfirmAction] = useState<'approve' | 'ship' | 'deliver' | 'reject' | null>(null);
+    const [confirmAction, setConfirmAction] = useState<'approve' | 'ship' | 'deliver' | 'reject' | 'submit' | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [showReceiveDialog, setShowReceiveDialog] = useState(false);
+    const [receiveItems, setReceiveItems] = useState<ReceiveItem[]>(
+        transfer.items.map((item) => ({
+            item_id: item.id,
+            quantity_received: String(item.quantity_delivered ?? item.quantity_requested),
+            discrepancy_note: '',
+        })),
+    );
+    const [receiveErrors, setReceiveErrors] = useState<Record<string, string>>({});
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
@@ -81,11 +132,12 @@ export default function TransferShow({ transfer }: { transfer: Transfer }) {
         if (!confirmAction) return;
         setIsProcessing(true);
 
-        const actions = {
+        const actions: Record<string, string> = {
             approve: approve(transfer.id).url,
             ship: ship(transfer.id).url,
             deliver: deliver(transfer.id).url,
             reject: reject(transfer.id).url,
+            submit: submit(transfer.id).url,
         };
 
         router.post(actions[confirmAction], {}, {
@@ -96,11 +148,53 @@ export default function TransferShow({ transfer }: { transfer: Transfer }) {
         });
     }
 
+    function handleReceive() {
+        // Client-side validation: discrepancy note required when qty differs
+        const errors: Record<string, string> = {};
+        receiveItems.forEach((ri, idx) => {
+            const original = transfer.items.find((i) => i.id === ri.item_id);
+            if (!original) return;
+            const delivered = original.quantity_delivered ?? original.quantity_requested;
+            if (parseInt(ri.quantity_received) !== delivered && !ri.discrepancy_note.trim()) {
+                errors[`items.${idx}.discrepancy_note`] = 'Explication requise pour l\'écart';
+            }
+        });
+
+        if (Object.keys(errors).length > 0) {
+            setReceiveErrors(errors);
+            return;
+        }
+
+        setIsProcessing(true);
+        router.post(
+            receive(transfer.id).url,
+            {
+                items: receiveItems.map((ri) => ({
+                    item_id: ri.item_id,
+                    quantity_received: parseInt(ri.quantity_received),
+                    discrepancy_note: ri.discrepancy_note || null,
+                })),
+            },
+            {
+                onFinish: () => {
+                    setIsProcessing(false);
+                    setShowReceiveDialog(false);
+                },
+            },
+        );
+    }
+
+    function updateReceiveItem(itemId: string, field: 'quantity_received' | 'discrepancy_note', value: string) {
+        setReceiveItems((prev) => prev.map((ri) => (ri.item_id === itemId ? { ...ri, [field]: value } : ri)));
+        setReceiveErrors({});
+    }
+
     const actionLabels = {
         approve: { title: 'Approuver le transfert', description: 'Cette action approuvera le transfert.', button: 'Approuver', variant: 'default' as const },
         ship: { title: 'Expédier le transfert', description: 'Le transfert sera marqué comme en transit.', button: 'Expédier', variant: 'default' as const },
-        deliver: { title: 'Marquer comme livré', description: 'Les stocks seront automatiquement mis à jour.', button: 'Livrer', variant: 'default' as const },
+        deliver: { title: 'Marquer comme livré', description: 'Le transfert sera marqué comme livré à destination.', button: 'Livrer', variant: 'default' as const },
         reject: { title: 'Rejeter le transfert', description: 'Ce transfert sera rejeté et ne pourra plus être traité.', button: 'Rejeter', variant: 'destructive' as const },
+        submit: { title: 'Soumettre le brouillon', description: 'Le brouillon sera soumis pour approbation.', button: 'Soumettre', variant: 'default' as const },
     };
 
     return (
@@ -131,6 +225,12 @@ export default function TransferShow({ transfer }: { transfer: Transfer }) {
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
+                        {transfer.status === 'draft' && (
+                            <Button size="sm" onClick={() => setConfirmAction('submit')}>
+                                <Send className="size-4" />
+                                Soumettre
+                            </Button>
+                        )}
                         {transfer.status === 'pending' && (
                             <>
                                 <Button variant="outline" size="sm" onClick={() => setConfirmAction('approve')}>
@@ -150,9 +250,21 @@ export default function TransferShow({ transfer }: { transfer: Transfer }) {
                             </Button>
                         )}
                         {transfer.status === 'in_transit' && (
-                            <Button size="sm" onClick={() => setConfirmAction('deliver')}>
-                                <Truck className="size-4" />
-                                Livré
+                            <>
+                                <Button size="sm" variant="outline" onClick={() => setConfirmAction('deliver')}>
+                                    <Truck className="size-4" />
+                                    Livré
+                                </Button>
+                                <Button size="sm" onClick={() => setShowReceiveDialog(true)}>
+                                    <PackageCheck className="size-4" />
+                                    Réceptionner
+                                </Button>
+                            </>
+                        )}
+                        {transfer.status === 'delivered' && (
+                            <Button size="sm" onClick={() => setShowReceiveDialog(true)}>
+                                <PackageCheck className="size-4" />
+                                Réceptionner
                             </Button>
                         )}
                     </div>
@@ -210,6 +322,18 @@ export default function TransferShow({ transfer }: { transfer: Transfer }) {
                                         <span className="font-medium">{transfer.vehicle.name} ({transfer.vehicle.registration_number})</span>
                                     </div>
                                 )}
+                                {transfer.driver_name && (
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-muted-foreground">Chauffeur</span>
+                                        <span className="font-medium">{transfer.driver_name}{transfer.driver_phone ? ` (${transfer.driver_phone})` : ''}</span>
+                                    </div>
+                                )}
+                                <div className="flex items-center justify-between">
+                                    <span className="text-muted-foreground">Frais entreprise</span>
+                                    <Badge variant={transfer.company_bears_costs ? 'default' : 'outline'}>
+                                        {transfer.company_bears_costs ? 'Oui' : 'Non'}
+                                    </Badge>
+                                </div>
                                 {transfer.notes && (
                                     <div className="pt-2">
                                         <p className="text-xs font-medium text-muted-foreground">Notes</p>
@@ -235,29 +359,117 @@ export default function TransferShow({ transfer }: { transfer: Transfer }) {
                                                 <th className="pb-2 font-medium">Produit</th>
                                                 <th className="pb-2 font-medium">Code</th>
                                                 <th className="pb-2 text-right font-medium">Demandé</th>
-                                                <th className="pb-2 text-right font-medium">Livré</th>
+                                                <th className="pb-2 text-right font-medium">Expédié</th>
+                                                <th className="pb-2 text-right font-medium">Reçu</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {transfer.items.map((item) => (
-                                                <tr key={item.id} className="border-b last:border-0">
-                                                    <td className="py-2.5 font-medium">{item.product.name}</td>
-                                                    <td className="py-2.5 text-muted-foreground">{item.product.code}</td>
-                                                    <td className="py-2.5 text-right font-semibold">{item.quantity_requested}</td>
-                                                    <td className="py-2.5 text-right">
-                                                        {item.quantity_delivered !== null ? (
-                                                            <span className="font-semibold text-primary">{item.quantity_delivered}</span>
-                                                        ) : (
-                                                            <span className="text-muted-foreground">—</span>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            ))}
+                                            {transfer.items.map((item) => {
+                                                const delivered = item.quantity_delivered;
+                                                const received = item.quantity_received;
+                                                const hasDiscrepancy = received !== null && delivered !== null && received !== delivered;
+
+                                                return (
+                                                    <tr key={item.id} className="border-b last:border-0">
+                                                        <td className="py-2.5 font-medium">{item.product.name}</td>
+                                                        <td className="py-2.5 text-muted-foreground">{item.product.code}</td>
+                                                        <td className="py-2.5 text-right font-semibold">{item.quantity_requested}</td>
+                                                        <td className="py-2.5 text-right">
+                                                            {delivered !== null ? (
+                                                                <span className="font-semibold text-primary">{delivered}</span>
+                                                            ) : (
+                                                                <span className="text-muted-foreground">—</span>
+                                                            )}
+                                                        </td>
+                                                        <td className="py-2.5 text-right">
+                                                            {received !== null ? (
+                                                                <span className={`font-semibold ${hasDiscrepancy ? 'text-destructive' : 'text-primary'}`}>
+                                                                    {received}
+                                                                    {hasDiscrepancy && <AlertTriangle className="ml-1 inline size-3" />}
+                                                                </span>
+                                                            ) : (
+                                                                <span className="text-muted-foreground">—</span>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
                                         </tbody>
                                     </table>
                                 </div>
+
+                                {/* Discrepancy notes */}
+                                {transfer.items.some((i) => i.discrepancy_note) && (
+                                    <div className="mt-4 space-y-2 rounded-lg border border-destructive/20 bg-destructive/5 p-3">
+                                        <p className="flex items-center gap-2 text-sm font-medium text-destructive">
+                                            <AlertTriangle className="size-4" />
+                                            Écarts signalés
+                                        </p>
+                                        {transfer.items.filter((i) => i.discrepancy_note).map((item) => (
+                                            <div key={item.id} className="text-sm">
+                                                <span className="font-medium">{item.product.name} :</span>{' '}
+                                                <span className="text-muted-foreground">{item.discrepancy_note}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
+
+                        {/* Logistic Charges */}
+                        {transfer.company_bears_costs && transfer.logistic_charges.length > 0 && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2 text-base">
+                                        <CircleDollarSign className="size-4" />
+                                        Frais logistiques ({transfer.logistic_charges.length})
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-sm">
+                                            <thead>
+                                                <tr className="border-b text-left text-muted-foreground">
+                                                    <th className="pb-2 font-medium">Libellé</th>
+                                                    <th className="pb-2 font-medium">Type</th>
+                                                    <th className="pb-2 text-right font-medium">Montant</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {transfer.logistic_charges.map((charge) => (
+                                                    <tr key={charge.id} className="border-b last:border-0">
+                                                        <td className="py-2.5 font-medium">{charge.label}</td>
+                                                        <td className="py-2.5 text-muted-foreground">{charge.type}</td>
+                                                        <td className="py-2.5 text-right font-semibold">
+                                                            {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(charge.amount)}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                            <tfoot>
+                                                <tr className="border-t font-semibold">
+                                                    <td className="pt-2" colSpan={2}>Total</td>
+                                                    <td className="pt-2 text-right">
+                                                        {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(
+                                                            transfer.logistic_charges.reduce((sum, c) => sum + c.amount, 0),
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                    {transfer.logistic_charges.some((c) => c.notes) && (
+                                        <div className="mt-3 space-y-1">
+                                            {transfer.logistic_charges.filter((c) => c.notes).map((charge) => (
+                                                <p key={charge.id} className="text-xs text-muted-foreground">
+                                                    <span className="font-medium">{charge.label} :</span> {charge.notes}
+                                                </p>
+                                            ))}
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        )}
                     </div>
 
                     {/* Sidebar */}
@@ -316,6 +528,19 @@ export default function TransferShow({ transfer }: { transfer: Transfer }) {
                                             </p>
                                         </div>
                                     )}
+                                    {transfer.received_at && (
+                                        <div>
+                                            <p className="text-sm font-medium">Réceptionné</p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {new Date(transfer.received_at).toLocaleDateString('fr-FR', {
+                                                    day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
+                                                })}
+                                            </p>
+                                            {transfer.received_by && (
+                                                <p className="text-xs text-muted-foreground">par {transfer.received_by.name}</p>
+                                            )}
+                                        </div>
+                                    )}
                                     {transfer.status === 'rejected' && (
                                         <div>
                                             <p className="text-sm font-medium text-destructive">Rejeté</p>
@@ -348,6 +573,12 @@ export default function TransferShow({ transfer }: { transfer: Transfer }) {
                                     <div className="flex items-center gap-2 text-muted-foreground">
                                         <Check className="size-3.5" />
                                         <span>Approuvé par {transfer.approved_by.name}</span>
+                                    </div>
+                                )}
+                                {transfer.received_by && (
+                                    <div className="flex items-center gap-2 text-muted-foreground">
+                                        <PackageCheck className="size-3.5" />
+                                        <span>Réceptionné par {transfer.received_by.name}</span>
                                     </div>
                                 )}
                                 {transfer.vehicle && (
@@ -388,6 +619,73 @@ export default function TransferShow({ transfer }: { transfer: Transfer }) {
                     </DialogContent>
                 </Dialog>
             )}
+
+            {/* Receive dialog */}
+            <Dialog open={showReceiveDialog} onOpenChange={setShowReceiveDialog}>
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Réceptionner le transfert</DialogTitle>
+                        <DialogDescription>
+                            Renseignez les quantités reçues pour chaque article. Si la quantité diffère de l'expédition, une explication est requise.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="max-h-[60vh] space-y-4 overflow-y-auto py-2">
+                        {transfer.items.map((item, idx) => {
+                            const ri = receiveItems.find((r) => r.item_id === item.id);
+                            if (!ri) return null;
+                            const delivered = item.quantity_delivered ?? item.quantity_requested;
+                            const hasDiscrepancy = parseInt(ri.quantity_received) !== delivered;
+
+                            return (
+                                <div key={item.id} className="rounded-lg border p-3 space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="font-medium text-sm">{item.product.name}</p>
+                                            <p className="text-xs text-muted-foreground">{item.product.code}</p>
+                                        </div>
+                                        <Badge variant="outline">Expédié : {delivered}</Badge>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label htmlFor={`qty-${item.id}`}>Quantité reçue</Label>
+                                        <Input
+                                            id={`qty-${item.id}`}
+                                            type="number"
+                                            min={0}
+                                            value={ri.quantity_received}
+                                            onChange={(e) => updateReceiveItem(item.id, 'quantity_received', e.target.value)}
+                                        />
+                                    </div>
+                                    {hasDiscrepancy && (
+                                        <div className="space-y-1">
+                                            <Label htmlFor={`note-${item.id}`} className="flex items-center gap-1 text-destructive">
+                                                <AlertTriangle className="size-3" />
+                                                Explication de l'écart *
+                                            </Label>
+                                            <Input
+                                                id={`note-${item.id}`}
+                                                placeholder="Raison de la différence…"
+                                                value={ri.discrepancy_note}
+                                                onChange={(e) => updateReceiveItem(item.id, 'discrepancy_note', e.target.value)}
+                                            />
+                                            {receiveErrors[`items.${idx}.discrepancy_note`] && (
+                                                <p className="text-xs text-destructive">{receiveErrors[`items.${idx}.discrepancy_note`]}</p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowReceiveDialog(false)} disabled={isProcessing}>
+                            Annuler
+                        </Button>
+                        <Button onClick={handleReceive} disabled={isProcessing}>
+                            {isProcessing ? 'Traitement…' : 'Confirmer la réception'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AppLayout>
     );
 }

@@ -1,7 +1,23 @@
 import { Head, router } from '@inertiajs/react';
-import { ArrowLeft, Banknote, Check, ClipboardList, Hash, Package, Truck, User, Warehouse as WarehouseIcon, X } from 'lucide-react';
+import {
+    AlertTriangle,
+    ArrowLeft,
+    Banknote,
+    Calendar,
+    Check,
+    CircleDollarSign,
+    ClipboardList,
+    Hash,
+    Package,
+    PackageCheck,
+    Send,
+    Truck,
+    User,
+    Warehouse as WarehouseIcon,
+    X,
+} from 'lucide-react';
 import { useState } from 'react';
-import { index as requestsIndex, approve, deliver, reject } from '@/actions/App/Http/Controllers/Admin/Logistics/SupplyRequestController';
+import { index as requestsIndex, approve, deliver, receive, reject, submit } from '@/actions/App/Http/Controllers/Admin/Logistics/SupplyRequestController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +29,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -21,6 +39,8 @@ type Item = {
     id: string;
     quantity_requested: number;
     quantity_delivered: number | null;
+    quantity_received: number | null;
+    discrepancy_note: string | null;
     product: { id: string; name: string; code: string };
 };
 
@@ -29,6 +49,7 @@ type Charge = {
     label: string;
     type: string;
     amount: string;
+    notes: string | null;
 };
 
 type Movement = {
@@ -44,13 +65,18 @@ type SupplyRequest = {
     status: string;
     type: string;
     notes: string | null;
+    company_bears_costs: boolean;
+    driver_name: string | null;
+    driver_phone: string | null;
     source_warehouse: { id: string; name: string; code: string } | null;
     destination_warehouse: { id: string; name: string; code: string } | null;
     supplier: { id: string; name: string; code: string } | null;
     created_by: { id: string; name: string } | null;
     approved_by: { id: string; name: string } | null;
+    received_by: { id: string; name: string } | null;
     approved_at: string | null;
     delivered_at: string | null;
+    received_at: string | null;
     items: Item[];
     stock_movements: Movement[];
     logistic_charges: Charge[];
@@ -59,10 +85,12 @@ type SupplyRequest = {
 };
 
 const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+    draft: { label: 'Brouillon', variant: 'outline' },
     pending: { label: 'En attente', variant: 'outline' },
     approved: { label: 'Approuvée', variant: 'default' },
     in_transit: { label: 'En transit', variant: 'secondary' },
     delivered: { label: 'Livrée', variant: 'default' },
+    received: { label: 'Réceptionnée', variant: 'default' },
     rejected: { label: 'Rejetée', variant: 'destructive' },
     cancelled: { label: 'Annulée', variant: 'secondary' },
 };
@@ -78,9 +106,24 @@ const chargeTypeLabels: Record<string, string> = {
     other: 'Autre',
 };
 
+type ReceiveItem = {
+    item_id: string;
+    quantity_received: string;
+    discrepancy_note: string;
+};
+
 export default function SupplyRequestShow({ supplyRequest }: { supplyRequest: SupplyRequest }) {
-    const [confirmAction, setConfirmAction] = useState<'approve' | 'deliver' | 'reject' | null>(null);
+    const [confirmAction, setConfirmAction] = useState<'approve' | 'deliver' | 'reject' | 'submit' | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [showReceiveDialog, setShowReceiveDialog] = useState(false);
+    const [receiveItems, setReceiveItems] = useState<ReceiveItem[]>(
+        supplyRequest.items.map((item) => ({
+            item_id: item.id,
+            quantity_received: String(item.quantity_delivered ?? item.quantity_requested),
+            discrepancy_note: '',
+        })),
+    );
+    const [receiveErrors, setReceiveErrors] = useState<Record<string, string>>({});
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
@@ -94,10 +137,11 @@ export default function SupplyRequestShow({ supplyRequest }: { supplyRequest: Su
         if (!confirmAction) return;
         setIsProcessing(true);
 
-        const actions = {
+        const actions: Record<string, string> = {
             approve: approve(supplyRequest.id).url,
             deliver: deliver(supplyRequest.id).url,
             reject: reject(supplyRequest.id).url,
+            submit: submit(supplyRequest.id).url,
         };
 
         router.post(actions[confirmAction], {}, {
@@ -108,10 +152,51 @@ export default function SupplyRequestShow({ supplyRequest }: { supplyRequest: Su
         });
     }
 
+    function handleReceive() {
+        const errors: Record<string, string> = {};
+        receiveItems.forEach((ri, idx) => {
+            const original = supplyRequest.items.find((i) => i.id === ri.item_id);
+            if (!original) return;
+            const delivered = original.quantity_delivered ?? original.quantity_requested;
+            if (parseInt(ri.quantity_received) !== delivered && !ri.discrepancy_note.trim()) {
+                errors[`items.${idx}.discrepancy_note`] = 'Explication requise pour l\'écart';
+            }
+        });
+
+        if (Object.keys(errors).length > 0) {
+            setReceiveErrors(errors);
+            return;
+        }
+
+        setIsProcessing(true);
+        router.post(
+            receive(supplyRequest.id).url,
+            {
+                items: receiveItems.map((ri) => ({
+                    item_id: ri.item_id,
+                    quantity_received: parseInt(ri.quantity_received),
+                    discrepancy_note: ri.discrepancy_note || null,
+                })),
+            },
+            {
+                onFinish: () => {
+                    setIsProcessing(false);
+                    setShowReceiveDialog(false);
+                },
+            },
+        );
+    }
+
+    function updateReceiveItem(itemId: string, field: 'quantity_received' | 'discrepancy_note', value: string) {
+        setReceiveItems((prev) => prev.map((ri) => (ri.item_id === itemId ? { ...ri, [field]: value } : ri)));
+        setReceiveErrors({});
+    }
+
     const actionLabels = {
         approve: { title: 'Approuver la demande', description: 'Cette action approuvera la demande d\'approvisionnement.', button: 'Approuver', variant: 'default' as const },
-        deliver: { title: 'Marquer comme livrée', description: 'Les stocks seront automatiquement mis à jour.', button: 'Livrer', variant: 'default' as const },
+        deliver: { title: 'Marquer comme livrée', description: 'La demande sera marquée comme livrée à destination.', button: 'Livrer', variant: 'default' as const },
         reject: { title: 'Rejeter la demande', description: 'Cette demande sera rejetée et ne pourra plus être traitée.', button: 'Rejeter', variant: 'destructive' as const },
+        submit: { title: 'Soumettre le brouillon', description: 'Le brouillon sera soumis pour approbation.', button: 'Soumettre', variant: 'default' as const },
     };
 
     const totalCharges = supplyRequest.logistic_charges.reduce((sum, c) => sum + Number(c.amount), 0);
@@ -143,6 +228,12 @@ export default function SupplyRequestShow({ supplyRequest }: { supplyRequest: Su
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
+                        {supplyRequest.status === 'draft' && (
+                            <Button size="sm" onClick={() => setConfirmAction('submit')}>
+                                <Send className="size-4" />
+                                Soumettre
+                            </Button>
+                        )}
                         {supplyRequest.status === 'pending' && (
                             <>
                                 <Button variant="outline" size="sm" onClick={() => setConfirmAction('approve')}>
@@ -159,6 +250,12 @@ export default function SupplyRequestShow({ supplyRequest }: { supplyRequest: Su
                             <Button size="sm" onClick={() => setConfirmAction('deliver')}>
                                 <Truck className="size-4" />
                                 Marquer livrée
+                            </Button>
+                        )}
+                        {(supplyRequest.status === 'in_transit' || supplyRequest.status === 'delivered') && (
+                            <Button size="sm" onClick={() => setShowReceiveDialog(true)}>
+                                <PackageCheck className="size-4" />
+                                Réceptionner
                             </Button>
                         )}
                     </div>
@@ -224,26 +321,59 @@ export default function SupplyRequestShow({ supplyRequest }: { supplyRequest: Su
                                                 <th className="pb-2 font-medium">Code</th>
                                                 <th className="pb-2 text-right font-medium">Demandé</th>
                                                 <th className="pb-2 text-right font-medium">Livré</th>
+                                                <th className="pb-2 text-right font-medium">Reçu</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {supplyRequest.items.map((item) => (
-                                                <tr key={item.id} className="border-b last:border-0">
-                                                    <td className="py-2.5 font-medium">{item.product.name}</td>
-                                                    <td className="py-2.5 text-muted-foreground">{item.product.code}</td>
-                                                    <td className="py-2.5 text-right font-semibold">{item.quantity_requested}</td>
-                                                    <td className="py-2.5 text-right">
-                                                        {item.quantity_delivered !== null ? (
-                                                            <span className="font-semibold text-primary">{item.quantity_delivered}</span>
-                                                        ) : (
-                                                            <span className="text-muted-foreground">—</span>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            ))}
+                                            {supplyRequest.items.map((item) => {
+                                                const delivered = item.quantity_delivered;
+                                                const received = item.quantity_received;
+                                                const hasDiscrepancy = received !== null && delivered !== null && received !== delivered;
+
+                                                return (
+                                                    <tr key={item.id} className="border-b last:border-0">
+                                                        <td className="py-2.5 font-medium">{item.product.name}</td>
+                                                        <td className="py-2.5 text-muted-foreground">{item.product.code}</td>
+                                                        <td className="py-2.5 text-right font-semibold">{item.quantity_requested}</td>
+                                                        <td className="py-2.5 text-right">
+                                                            {delivered !== null ? (
+                                                                <span className="font-semibold text-primary">{delivered}</span>
+                                                            ) : (
+                                                                <span className="text-muted-foreground">—</span>
+                                                            )}
+                                                        </td>
+                                                        <td className="py-2.5 text-right">
+                                                            {received !== null ? (
+                                                                <span className={`font-semibold ${hasDiscrepancy ? 'text-destructive' : 'text-primary'}`}>
+                                                                    {received}
+                                                                    {hasDiscrepancy && <AlertTriangle className="ml-1 inline size-3" />}
+                                                                </span>
+                                                            ) : (
+                                                                <span className="text-muted-foreground">—</span>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
                                         </tbody>
                                     </table>
                                 </div>
+
+                                {/* Discrepancy notes */}
+                                {supplyRequest.items.some((i) => i.discrepancy_note) && (
+                                    <div className="mt-4 space-y-2 rounded-lg border border-destructive/20 bg-destructive/5 p-3">
+                                        <p className="flex items-center gap-2 text-sm font-medium text-destructive">
+                                            <AlertTriangle className="size-4" />
+                                            Écarts signalés
+                                        </p>
+                                        {supplyRequest.items.filter((i) => i.discrepancy_note).map((item) => (
+                                            <div key={item.id} className="text-sm">
+                                                <span className="font-medium">{item.product.name} :</span>{' '}
+                                                <span className="text-muted-foreground">{item.discrepancy_note}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
 
@@ -254,6 +384,35 @@ export default function SupplyRequestShow({ supplyRequest }: { supplyRequest: Su
                                 </CardHeader>
                                 <CardContent>
                                     <p className="text-sm text-muted-foreground">{supplyRequest.notes}</p>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* Driver / Cost info */}
+                        {(supplyRequest.driver_name || supplyRequest.company_bears_costs) && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2 text-base">
+                                        <Hash className="size-4" />
+                                        Informations transport
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-3 text-sm">
+                                    {supplyRequest.driver_name && (
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-muted-foreground">Chauffeur</span>
+                                            <span className="font-medium">
+                                                {supplyRequest.driver_name}
+                                                {supplyRequest.driver_phone ? ` (${supplyRequest.driver_phone})` : ''}
+                                            </span>
+                                        </div>
+                                    )}
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-muted-foreground">Frais entreprise</span>
+                                        <Badge variant={supplyRequest.company_bears_costs ? 'default' : 'outline'}>
+                                            {supplyRequest.company_bears_costs ? 'Oui' : 'Non'}
+                                        </Badge>
+                                    </div>
                                 </CardContent>
                             </Card>
                         )}
@@ -348,6 +507,19 @@ export default function SupplyRequestShow({ supplyRequest }: { supplyRequest: Su
                                             </p>
                                         </div>
                                     )}
+                                    {supplyRequest.received_at && (
+                                        <div>
+                                            <p className="text-sm font-medium">Réceptionnée</p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {new Date(supplyRequest.received_at).toLocaleDateString('fr-FR', {
+                                                    day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
+                                                })}
+                                            </p>
+                                            {supplyRequest.received_by && (
+                                                <p className="text-xs text-muted-foreground">par {supplyRequest.received_by.name}</p>
+                                            )}
+                                        </div>
+                                    )}
                                     {supplyRequest.status === 'rejected' && (
                                         <div>
                                             <p className="text-sm font-medium text-destructive">Rejetée</p>
@@ -369,6 +541,12 @@ export default function SupplyRequestShow({ supplyRequest }: { supplyRequest: Su
                                     <div className="flex items-center gap-2 text-muted-foreground">
                                         <User className="size-3.5" />
                                         <span>Demandé par {supplyRequest.created_by.name}</span>
+                                    </div>
+                                )}
+                                {supplyRequest.received_by && (
+                                    <div className="flex items-center gap-2 text-muted-foreground">
+                                        <PackageCheck className="size-3.5" />
+                                        <span>Réceptionné par {supplyRequest.received_by.name}</span>
                                     </div>
                                 )}
                                 <div className="text-muted-foreground">
@@ -403,6 +581,73 @@ export default function SupplyRequestShow({ supplyRequest }: { supplyRequest: Su
                     </DialogContent>
                 </Dialog>
             )}
+
+            {/* Receive dialog */}
+            <Dialog open={showReceiveDialog} onOpenChange={setShowReceiveDialog}>
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Réceptionner l'approvisionnement</DialogTitle>
+                        <DialogDescription>
+                            Renseignez les quantités reçues pour chaque article. Si la quantité diffère de la livraison, une explication est requise.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="max-h-[60vh] space-y-4 overflow-y-auto py-2">
+                        {supplyRequest.items.map((item, idx) => {
+                            const ri = receiveItems.find((r) => r.item_id === item.id);
+                            if (!ri) return null;
+                            const delivered = item.quantity_delivered ?? item.quantity_requested;
+                            const hasDiscrepancy = parseInt(ri.quantity_received) !== delivered;
+
+                            return (
+                                <div key={item.id} className="rounded-lg border p-3 space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="font-medium text-sm">{item.product.name}</p>
+                                            <p className="text-xs text-muted-foreground">{item.product.code}</p>
+                                        </div>
+                                        <Badge variant="outline">Livré : {delivered}</Badge>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label htmlFor={`qty-${item.id}`}>Quantité reçue</Label>
+                                        <Input
+                                            id={`qty-${item.id}`}
+                                            type="number"
+                                            min={0}
+                                            value={ri.quantity_received}
+                                            onChange={(e) => updateReceiveItem(item.id, 'quantity_received', e.target.value)}
+                                        />
+                                    </div>
+                                    {hasDiscrepancy && (
+                                        <div className="space-y-1">
+                                            <Label htmlFor={`note-${item.id}`} className="flex items-center gap-1 text-destructive">
+                                                <AlertTriangle className="size-3" />
+                                                Explication de l'écart *
+                                            </Label>
+                                            <Input
+                                                id={`note-${item.id}`}
+                                                placeholder="Raison de la différence…"
+                                                value={ri.discrepancy_note}
+                                                onChange={(e) => updateReceiveItem(item.id, 'discrepancy_note', e.target.value)}
+                                            />
+                                            {receiveErrors[`items.${idx}.discrepancy_note`] && (
+                                                <p className="text-xs text-destructive">{receiveErrors[`items.${idx}.discrepancy_note`]}</p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowReceiveDialog(false)} disabled={isProcessing}>
+                            Annuler
+                        </Button>
+                        <Button onClick={handleReceive} disabled={isProcessing}>
+                            {isProcessing ? 'Traitement…' : 'Confirmer la réception'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AppLayout>
     );
 }

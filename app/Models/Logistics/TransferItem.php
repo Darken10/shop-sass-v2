@@ -19,6 +19,8 @@ class TransferItem extends Model
     protected $fillable = [
         'quantity_requested',
         'quantity_delivered',
+        'quantity_received',
+        'discrepancy_note',
         'product_id',
         'transfer_id',
     ];
@@ -28,6 +30,7 @@ class TransferItem extends Model
         return [
             'quantity_requested' => 'integer',
             'quantity_delivered' => 'integer',
+            'quantity_received' => 'integer',
         ];
     }
 

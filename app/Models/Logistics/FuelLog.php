@@ -27,6 +27,7 @@ class FuelLog extends Model
         'notes',
         'vehicle_id',
         'stock_movement_id',
+        'transfer_id',
         'company_id',
         'created_by',
     ];
@@ -49,6 +50,11 @@ class FuelLog extends Model
     public function stockMovement(): BelongsTo
     {
         return $this->belongsTo(StockMovement::class);
+    }
+
+    public function transfer(): BelongsTo
+    {
+        return $this->belongsTo(Transfer::class);
     }
 
     public function createdBy(): BelongsTo

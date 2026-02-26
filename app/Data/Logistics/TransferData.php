@@ -4,7 +4,9 @@ namespace App\Data\Logistics;
 
 use App\Enums\TransferType;
 use Spatie\LaravelData\Attributes\Validation\ArrayType;
+use Spatie\LaravelData\Attributes\Validation\BooleanType;
 use Spatie\LaravelData\Attributes\Validation\Enum;
+use Spatie\LaravelData\Attributes\Validation\Max;
 use Spatie\LaravelData\Attributes\Validation\Min;
 use Spatie\LaravelData\Attributes\Validation\Nullable;
 use Spatie\LaravelData\Attributes\Validation\Required;
@@ -36,8 +38,24 @@ class TransferData extends Data
         #[Sometimes, Nullable, Uuid]
         public ?string $vehicle_id,
 
+        #[Sometimes, BooleanType]
+        public bool $company_bears_costs = false,
+
+        #[Sometimes, Nullable, StringType, Max(255)]
+        public ?string $driver_name = null,
+
+        #[Sometimes, Nullable, StringType, Max(50)]
+        public ?string $driver_phone = null,
+
+        #[Sometimes]
+        public bool $is_draft = false,
+
         /** @var array<int, mixed> */
         #[Required, ArrayType, Min(1)]
-        public array $items,
+        public array $items = [],
+
+        /** @var array<int, mixed> */
+        #[Sometimes, Nullable, ArrayType]
+        public ?array $charges = null,
     ) {}
 }

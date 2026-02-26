@@ -20,6 +20,8 @@ class SupplyRequestItem extends Model
     protected $fillable = [
         'quantity_requested',
         'quantity_delivered',
+        'quantity_received',
+        'discrepancy_note',
         'supply_request_id',
         'product_id',
     ];
@@ -29,6 +31,7 @@ class SupplyRequestItem extends Model
         return [
             'quantity_requested' => 'integer',
             'quantity_delivered' => 'integer',
+            'quantity_received' => 'integer',
         ];
     }
 

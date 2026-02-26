@@ -1,11 +1,12 @@
 import { Form, Head } from '@inertiajs/react';
-import { ArrowLeft, MinusCircle, Package, Plus, Truck, Warehouse as WarehouseIcon } from 'lucide-react';
+import { ArrowLeft, CircleDollarSign, MinusCircle, Package, Plus, Save, Truck, Warehouse as WarehouseIcon } from 'lucide-react';
 import { useState } from 'react';
 import SupplyRequestController, { index as requestsIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/SupplyRequestController';
 import CreateProductModal from '@/components/create-product-modal';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -17,18 +18,28 @@ type Warehouse = { id: string; name: string; code: string };
 type Supplier = { id: string; name: string; code: string };
 type Product = { id: string; name: string; code: string };
 type Category = { id: string; name: string };
+type ChargeType = { value: string; label: string };
 
 type Props = {
     warehouses: Warehouse[];
     suppliers: Supplier[];
     products: Product[];
     categories: Category[];
+    chargeTypes: ChargeType[];
 };
 
 type ItemRow = {
     key: number;
     product_id: string;
     quantity_requested: string;
+};
+
+type ChargeRow = {
+    key: number;
+    label: string;
+    type: string;
+    amount: string;
+    notes: string;
 };
 
 const breadcrumbs: BreadcrumbItem[] = [

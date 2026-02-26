@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Admin\Logistics;
 
 use App\Data\Logistics\TransferData;
+use App\Enums\LogisticChargeType;
 use App\Enums\StockMovementType;
 use App\Enums\TransferStatus;
 use App\Enums\TransferType;
 use App\Http\Controllers\Controller;
+use App\Models\Logistics\LogisticCharge;
 use App\Models\Logistics\Shop;
 use App\Models\Logistics\ShopStock;
 use App\Models\Logistics\StockMovement;
@@ -17,6 +19,7 @@ use App\Models\Logistics\Warehouse;
 use App\Models\Logistics\WarehouseStock;
 use App\Models\Product\Product;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -54,6 +57,10 @@ class TransferController extends Controller
             'products' => Product::query()->select(['id', 'name', 'code'])->orderBy('name')->get(),
             'vehicles' => Vehicle::query()->select(['id', 'name', 'registration_number'])->orderBy('name')->get(),
             'transferTypes' => TransferType::cases(),
+            'chargeTypes' => collect(LogisticChargeType::cases())->map(fn ($c) => [
+                'value' => $c->value,
+                'label' => $c->label(),
+            ]),
         ]);
     }
 
@@ -61,35 +68,28 @@ class TransferController extends Controller
     {
         $this->authorize('create', Transfer::class);
 
-        $insufficientItems = [];
+        $isDraft = $data->is_draft;
+        $status = $isDraft ? TransferStatus::Draft : TransferStatus::Pending;
 
-        foreach ($data->items as $item) {
-            $sourceStock = WarehouseStock::withoutGlobalScopes()
-                ->where('product_id', $item['product_id'])
-                ->where('warehouse_id', $data->source_warehouse_id)
-                ->first();
+        // Stock validation only for non-draft
+        if (! $isDraft) {
+            $insufficientItems = $this->validateStockAvailability($data->items, $data->source_warehouse_id);
 
-            $availableQty = $sourceStock?->quantity ?? 0;
-            $requestedQty = (int) $item['quantity_requested'];
-
-            if ($availableQty < $requestedQty) {
-                $product = Product::withoutGlobalScopes()->find($item['product_id']);
-                $productName = $product?->name ?? $item['product_id'];
-                $insufficientItems[] = "{$productName} (demandé: {$requestedQty}, disponible: {$availableQty})";
+            if (! empty($insufficientItems)) {
+                return back()
+                    ->withInput()
+                    ->withErrors(['items' => 'Stock insuffisant pour : '.implode(', ', $insufficientItems)]);
             }
-        }
-
-        if (! empty($insufficientItems)) {
-            return back()
-                ->withInput()
-                ->withErrors(['items' => 'Stock insuffisant pour : '.implode(', ', $insufficientItems)]);
         }
 
         $transfer = Transfer::create([
             'reference' => 'TRF-'.strtoupper(Str::random(8)),
             'type' => $data->type,
-            'status' => TransferStatus::Pending,
+            'status' => $status,
             'notes' => $data->notes,
+            'company_bears_costs' => $data->company_bears_costs,
+            'driver_name' => $data->driver_name,
+            'driver_phone' => $data->driver_phone,
             'source_warehouse_id' => $data->source_warehouse_id,
             'destination_warehouse_id' => $data->destination_warehouse_id,
             'destination_shop_id' => $data->destination_shop_id,
@@ -105,8 +105,26 @@ class TransferController extends Controller
             ]);
         }
 
+        // Save logistic charges if company bears costs
+        if ($data->company_bears_costs && ! empty($data->charges)) {
+            foreach ($data->charges as $charge) {
+                LogisticCharge::create([
+                    'label' => $charge['label'],
+                    'type' => $charge['type'],
+                    'amount' => $charge['amount'],
+                    'notes' => $charge['notes'] ?? null,
+                    'transfer_id' => $transfer->id,
+                    'created_by' => auth()->id(),
+                ]);
+            }
+        }
+
+        $message = $isDraft
+            ? 'Brouillon enregistré avec succès.'
+            : 'Transfert créé avec succès.';
+
         return to_route('admin.logistics.transfers.show', $transfer)
-            ->with('success', 'Transfert créé avec succès.');
+            ->with('success', $message);
     }
 
     public function show(Transfer $transfer): Response
@@ -119,8 +137,11 @@ class TransferController extends Controller
             'destinationShop:id,name,code',
             'vehicle:id,name,registration_number',
             'approvedBy:id,name',
+            'receivedBy:id,name',
             'createdBy:id,name',
             'items.product:id,name,code',
+            'logisticCharges',
+            'fuelLogs.vehicle:id,name,registration_number',
         ]);
 
         return Inertia::render('admin/logistics/transfers/show', [
@@ -145,49 +166,87 @@ class TransferController extends Controller
     {
         $this->authorize('update', $transfer);
 
-        $transfer->update([
-            'status' => TransferStatus::InTransit,
-            'shipped_at' => now(),
-        ]);
+        if ($transfer->status !== TransferStatus::Approved) {
+            return back()->with('error', 'Ce transfert doit être approuvé avant expédition.');
+        }
+
+        $transfer->load('items');
+
+        DB::transaction(function () use ($transfer) {
+            foreach ($transfer->items as $item) {
+                $item->update(['quantity_delivered' => $item->quantity_requested]);
+            }
+
+            $transfer->update([
+                'status' => TransferStatus::InTransit,
+                'shipped_at' => now(),
+            ]);
+        });
 
         return back()->with('success', 'Transfert expédié avec succès.');
     }
 
-    public function deliver(Transfer $transfer): RedirectResponse
+    /**
+     * Receive a transfer at the destination.
+     * Records actual received quantities, mandatory discrepancy notes, and updates stock.
+     */
+    public function receive(Transfer $transfer, Request $request): RedirectResponse
     {
         $this->authorize('update', $transfer);
 
-        if (! in_array($transfer->status, [TransferStatus::Approved, TransferStatus::InTransit])) {
-            return back()->with('error', 'Ce transfert doit être approuvé ou en transit avant livraison.');
+        if (! in_array($transfer->status, [TransferStatus::InTransit, TransferStatus::Delivered])) {
+            return back()->with('error', 'Ce transfert doit être en transit ou livré avant réception.');
         }
+
+        $validated = $request->validate([
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.item_id' => ['required', 'uuid'],
+            'items.*.quantity_received' => ['required', 'integer', 'min:0'],
+            'items.*.discrepancy_note' => ['nullable', 'string'],
+        ]);
 
         $transfer->load('items.product');
 
-        $insufficientItems = [];
+        // Validate: discrepancy note is mandatory when quantities differ
+        $errors = [];
+        foreach ($validated['items'] as $idx => $receivedItem) {
+            $transferItem = $transfer->items->firstWhere('id', $receivedItem['item_id']);
 
-        foreach ($transfer->items as $item) {
-            $sourceStock = WarehouseStock::withoutGlobalScopes()
-                ->where('product_id', $item->product_id)
-                ->where('warehouse_id', $transfer->source_warehouse_id)
-                ->first();
+            if (! $transferItem) {
+                $errors["items.{$idx}.item_id"] = 'Article introuvable.';
 
-            $availableQty = $sourceStock?->quantity ?? 0;
+                continue;
+            }
 
-            if ($availableQty < $item->quantity_requested) {
-                $insufficientItems[] = "{$item->product->name} (demandé: {$item->quantity_requested}, disponible: {$availableQty})";
+            $delivered = $transferItem->quantity_delivered ?? $transferItem->quantity_requested;
+
+            if ((int) $receivedItem['quantity_received'] !== $delivered && empty($receivedItem['discrepancy_note'])) {
+                $errors["items.{$idx}.discrepancy_note"] = "Une explication est requise pour l'écart sur {$transferItem->product->name}.";
             }
         }
 
-        if (! empty($insufficientItems)) {
-            return back()->with('error', 'Stock insuffisant pour : '.implode(', ', $insufficientItems));
+        if (! empty($errors)) {
+            return back()->withErrors($errors)->withInput();
         }
 
-        DB::transaction(function () use ($transfer) {
-            foreach ($transfer->items as $item) {
-                $qty = $item->quantity_requested;
+        DB::transaction(function () use ($transfer, $validated) {
+            foreach ($validated['items'] as $receivedItem) {
+                $transferItem = $transfer->items->firstWhere('id', $receivedItem['item_id']);
 
+                if (! $transferItem) {
+                    continue;
+                }
+
+                $qty = (int) $receivedItem['quantity_received'];
+
+                $transferItem->update([
+                    'quantity_received' => $qty,
+                    'discrepancy_note' => $receivedItem['discrepancy_note'] ?? null,
+                ]);
+
+                // Decrement source warehouse stock
                 $sourceStock = WarehouseStock::withoutGlobalScopes()
-                    ->where('product_id', $item->product_id)
+                    ->where('product_id', $transferItem->product_id)
                     ->where('warehouse_id', $transfer->source_warehouse_id)
                     ->first();
 
@@ -195,11 +254,12 @@ class TransferController extends Controller
                     $sourceStock->decrement('quantity', $qty);
                 }
 
+                // Increment destination stock
                 if ($transfer->type === TransferType::WarehouseToShop && $transfer->destination_shop_id) {
                     $destStock = ShopStock::withoutGlobalScopes()
                         ->firstOrCreate(
                             [
-                                'product_id' => $item->product_id,
+                                'product_id' => $transferItem->product_id,
                                 'shop_id' => $transfer->destination_shop_id,
                             ],
                             [
@@ -212,7 +272,7 @@ class TransferController extends Controller
                     $destStock = WarehouseStock::withoutGlobalScopes()
                         ->firstOrCreate(
                             [
-                                'product_id' => $item->product_id,
+                                'product_id' => $transferItem->product_id,
                                 'warehouse_id' => $transfer->destination_warehouse_id,
                             ],
                             [
@@ -229,8 +289,8 @@ class TransferController extends Controller
                         ? StockMovementType::WarehouseToShop
                         : StockMovementType::WarehouseToWarehouse,
                     'quantity' => $qty,
-                    'reason' => "Transfert {$transfer->reference}",
-                    'product_id' => $item->product_id,
+                    'reason' => "Réception transfert {$transfer->reference}",
+                    'product_id' => $transferItem->product_id,
                     'source_warehouse_id' => $transfer->source_warehouse_id,
                     'destination_warehouse_id' => $transfer->destination_warehouse_id,
                     'destination_shop_id' => $transfer->destination_shop_id,
@@ -238,17 +298,36 @@ class TransferController extends Controller
                     'company_id' => $transfer->company_id,
                     'created_by' => auth()->id(),
                 ]);
-
-                $item->update(['quantity_delivered' => $qty]);
             }
 
             $transfer->update([
-                'status' => TransferStatus::Delivered,
-                'delivered_at' => now(),
+                'status' => TransferStatus::Received,
+                'received_at' => now(),
+                'received_by' => auth()->id(),
             ]);
         });
 
-        return back()->with('success', 'Transfert livré avec succès.');
+        return back()->with('success', 'Transfert réceptionné avec succès.');
+    }
+
+    /**
+     * Legacy deliver action - marks as delivered (expedition confirmed).
+     * Stock is now managed in receive() instead.
+     */
+    public function deliver(Transfer $transfer): RedirectResponse
+    {
+        $this->authorize('update', $transfer);
+
+        if (! in_array($transfer->status, [TransferStatus::Approved, TransferStatus::InTransit])) {
+            return back()->with('error', 'Ce transfert doit être approuvé ou en transit avant livraison.');
+        }
+
+        $transfer->update([
+            'status' => TransferStatus::Delivered,
+            'delivered_at' => now(),
+        ]);
+
+        return back()->with('success', 'Transfert marqué comme livré.');
     }
 
     public function reject(Transfer $transfer): RedirectResponse
@@ -260,5 +339,68 @@ class TransferController extends Controller
         ]);
 
         return back()->with('success', 'Transfert rejeté.');
+    }
+
+    /**
+     * Submit a draft transfer as pending.
+     */
+    public function submit(Transfer $transfer): RedirectResponse
+    {
+        $this->authorize('update', $transfer);
+
+        if ($transfer->status !== TransferStatus::Draft) {
+            return back()->with('error', 'Seul un brouillon peut être soumis.');
+        }
+
+        $transfer->load('items');
+
+        $insufficientItems = [];
+        foreach ($transfer->items as $item) {
+            $sourceStock = WarehouseStock::withoutGlobalScopes()
+                ->where('product_id', $item->product_id)
+                ->where('warehouse_id', $transfer->source_warehouse_id)
+                ->first();
+
+            $availableQty = $sourceStock?->quantity ?? 0;
+
+            if ($availableQty < $item->quantity_requested) {
+                $product = Product::withoutGlobalScopes()->find($item->product_id);
+                $insufficientItems[] = "{$product?->name} (demandé: {$item->quantity_requested}, disponible: {$availableQty})";
+            }
+        }
+
+        if (! empty($insufficientItems)) {
+            return back()->with('error', 'Stock insuffisant pour : '.implode(', ', $insufficientItems));
+        }
+
+        $transfer->update(['status' => TransferStatus::Pending]);
+
+        return back()->with('success', 'Transfert soumis avec succès.');
+    }
+
+    /**
+     * @return array<string>
+     */
+    private function validateStockAvailability(array $items, string $sourceWarehouseId): array
+    {
+        $insufficientItems = [];
+
+        foreach ($items as $item) {
+            $sourceStock = WarehouseStock::withoutGlobalScopes()
+                ->where('product_id', $item['product_id'])
+                ->where('warehouse_id', $sourceWarehouseId)
+                ->first();
+
+            $availableQty = $sourceStock?->quantity ?? 0;
+            $requestedQty = (int) $item['quantity_requested'];
+
+            if ($availableQty < $requestedQty) {
+                $product = Product::withoutGlobalScopes()->find($item['product_id']);
+                $productName = $product?->name ?? $item['product_id'];
+                $insufficientItems[] = "{$productName} (demandé: {$requestedQty}, disponible: {$availableQty})";
+            }
+        }
+
+        return $insufficientItems;
     }
 }

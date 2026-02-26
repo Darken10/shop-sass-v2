@@ -27,12 +27,17 @@ class SupplyRequest extends Model
         'type',
         'status',
         'notes',
+        'company_bears_costs',
+        'driver_name',
+        'driver_phone',
         'approved_at',
         'delivered_at',
+        'received_at',
         'source_warehouse_id',
         'destination_warehouse_id',
         'supplier_id',
         'approved_by',
+        'received_by',
         'company_id',
         'created_by',
     ];
@@ -42,8 +47,10 @@ class SupplyRequest extends Model
         return [
             'type' => SupplyType::class,
             'status' => SupplyRequestStatus::class,
+            'company_bears_costs' => 'boolean',
             'approved_at' => 'datetime',
             'delivered_at' => 'datetime',
+            'received_at' => 'datetime',
         ];
     }
 
@@ -85,5 +92,15 @@ class SupplyRequest extends Model
     public function logisticCharges(): HasMany
     {
         return $this->hasMany(LogisticCharge::class);
+    }
+
+    public function fuelLogs(): HasMany
+    {
+        return $this->hasMany(FuelLog::class);
+    }
+
+    public function receivedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'received_by');
     }
 }

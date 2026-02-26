@@ -39,6 +39,10 @@ Route::middleware(['auth', 'verified'])
             ->name('supply-requests.deliver');
         Route::post('supply-requests/{supply_request}/reject', [SupplyRequestController::class, 'reject'])
             ->name('supply-requests.reject');
+        Route::post('supply-requests/{supply_request}/receive', [SupplyRequestController::class, 'receive'])
+            ->name('supply-requests.receive');
+        Route::post('supply-requests/{supply_request}/submit', [SupplyRequestController::class, 'submit'])
+            ->name('supply-requests.submit');
 
         // Transferts
         Route::resource('transfers', TransferController::class)->only(['index', 'create', 'store', 'show']);
@@ -48,8 +52,12 @@ Route::middleware(['auth', 'verified'])
             ->name('transfers.ship');
         Route::post('transfers/{transfer}/deliver', [TransferController::class, 'deliver'])
             ->name('transfers.deliver');
+        Route::post('transfers/{transfer}/receive', [TransferController::class, 'receive'])
+            ->name('transfers.receive');
         Route::post('transfers/{transfer}/reject', [TransferController::class, 'reject'])
             ->name('transfers.reject');
+        Route::post('transfers/{transfer}/submit', [TransferController::class, 'submit'])
+            ->name('transfers.submit');
 
         // Engins / Véhicules
         Route::resource('vehicles', VehicleController::class);
