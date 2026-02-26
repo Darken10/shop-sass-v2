@@ -15,7 +15,11 @@ class CompanyPolicy
 
     public function view(User $user, Company $company): bool
     {
-        return $user->hasAnyRole([RoleEnum::SuperAdmin->value, RoleEnum::Admin->value]);
+        if ($user->hasRole(RoleEnum::SuperAdmin->value)) {
+            return true;
+        }
+
+        return $user->hasRole(RoleEnum::Admin->value) && $company->created_by === $user->id;
     }
 
     public function create(User $user): bool
@@ -25,12 +29,20 @@ class CompanyPolicy
 
     public function update(User $user, Company $company): bool
     {
-        return $user->hasAnyRole([RoleEnum::SuperAdmin->value, RoleEnum::Admin->value]);
+        if ($user->hasRole(RoleEnum::SuperAdmin->value)) {
+            return true;
+        }
+
+        return $user->hasRole(RoleEnum::Admin->value) && $company->created_by === $user->id;
     }
 
     public function delete(User $user, Company $company): bool
     {
-        return $user->hasAnyRole([RoleEnum::SuperAdmin->value, RoleEnum::Admin->value]);
+        if ($user->hasRole(RoleEnum::SuperAdmin->value)) {
+            return true;
+        }
+
+        return $user->hasRole(RoleEnum::Admin->value) && $company->created_by === $user->id;
     }
 
     public function restore(User $user, Company $company): bool

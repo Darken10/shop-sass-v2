@@ -51,6 +51,38 @@ it('allows super admin to access the companies index', function () {
 
 // --- Index ---
 
+it('admin only sees companies they created', function () {
+    $otherAdmin = User::factory()->create();
+    $otherAdmin->assignRole(RoleEnum::Admin->value);
+
+    Company::factory(2)->create(['created_by' => $this->admin->id]);
+    Company::factory(3)->create(['created_by' => $otherAdmin->id]);
+
+    actingAs($this->admin)
+        ->get('/admin/companies')
+        ->assertInertia(
+            fn (Assert $page) => $page
+                ->component('admin/companies/index')
+                ->has('companies.data', 2),
+        );
+});
+
+it('super admin sees all companies', function () {
+    $otherAdmin = User::factory()->create();
+    $otherAdmin->assignRole(RoleEnum::Admin->value);
+
+    Company::factory(2)->create(['created_by' => $this->admin->id]);
+    Company::factory(3)->create(['created_by' => $otherAdmin->id]);
+
+    actingAs($this->superAdmin)
+        ->get('/admin/companies')
+        ->assertInertia(
+            fn (Assert $page) => $page
+                ->component('admin/companies/index')
+                ->has('companies.data', 5),
+        );
+});
+
 it('lists companies with pagination', function () {
     Company::factory(3)->create(['created_by' => $this->admin->id]);
 
@@ -118,7 +150,7 @@ it('validates email format on store', function () {
 
 // --- Show ---
 
-it('shows a company to admin', function () {
+it('shows a company to admin who created it', function () {
     $company = Company::factory()->create(['created_by' => $this->admin->id]);
 
     actingAs($this->admin)
@@ -127,6 +159,26 @@ it('shows a company to admin', function () {
             fn (Assert $page) => $page
                 ->component('admin/companies/show')
                 ->has('company'),
+        );
+});
+
+it('forbids admin from viewing a company they did not create', function () {
+    $otherAdmin = User::factory()->create();
+    $otherAdmin->assignRole(RoleEnum::Admin->value);
+    $company = Company::factory()->create(['created_by' => $otherAdmin->id]);
+
+    actingAs($this->admin)
+        ->get("/admin/companies/{$company->id}")
+        ->assertForbidden();
+});
+
+it('allows super admin to view any company', function () {
+    $company = Company::factory()->create(['created_by' => $this->admin->id]);
+
+    actingAs($this->superAdmin)
+        ->get("/admin/companies/{$company->id}")
+        ->assertInertia(
+            fn (Assert $page) => $page->component('admin/companies/show'),
         );
 });
 
@@ -140,7 +192,7 @@ it('forbids non-admin from viewing a company', function () {
 
 // --- Edit ---
 
-it('shows the edit form to admin', function () {
+it('shows the edit form to admin who created the company', function () {
     $company = Company::factory()->create(['created_by' => $this->admin->id]);
 
     actingAs($this->admin)
@@ -150,6 +202,26 @@ it('shows the edit form to admin', function () {
                 ->component('admin/companies/edit')
                 ->has('company')
                 ->has('types'),
+        );
+});
+
+it('forbids admin from editing a company they did not create', function () {
+    $otherAdmin = User::factory()->create();
+    $otherAdmin->assignRole(RoleEnum::Admin->value);
+    $company = Company::factory()->create(['created_by' => $otherAdmin->id]);
+
+    actingAs($this->admin)
+        ->get("/admin/companies/{$company->id}/edit")
+        ->assertForbidden();
+});
+
+it('allows super admin to edit any company', function () {
+    $company = Company::factory()->create(['created_by' => $this->admin->id]);
+
+    actingAs($this->superAdmin)
+        ->get("/admin/companies/{$company->id}/edit")
+        ->assertInertia(
+            fn (Assert $page) => $page->component('admin/companies/edit'),
         );
 });
 
@@ -181,12 +253,61 @@ it('forbids non-admin from updating a company', function () {
         ->assertForbidden();
 });
 
-// --- Destroy ---
+it('forbids admin from updating a company they did not create', function () {
+    $otherAdmin = User::factory()->create();
+    $otherAdmin->assignRole(RoleEnum::Admin->value);
+    $company = Company::factory()->create(['created_by' => $otherAdmin->id]);
 
-it('soft-deletes a company', function () {
+    actingAs($this->admin)
+        ->put("/admin/companies/{$company->id}", [
+            'name' => 'Hack',
+            'type' => CompanyTypeEnum::BOUTIQUE->value,
+            'status' => CompanyStatusEnum::Active->value,
+        ])
+        ->assertForbidden();
+});
+
+it('allows super admin to update any company', function () {
+    $company = Company::factory()->create(['created_by' => $this->admin->id]);
+
+    actingAs($this->superAdmin)
+        ->put("/admin/companies/{$company->id}", [
+            'name' => 'Updated by SuperAdmin',
+            'type' => CompanyTypeEnum::SERVICE->value,
+            'status' => CompanyStatusEnum::Active->value,
+        ])
+        ->assertRedirect();
+
+    assertDatabaseHas('companies', [
+        'id' => $company->id,
+        'name' => 'Updated by SuperAdmin',
+    ]);
+});
+
+it('soft-deletes a company created by admin', function () {
     $company = Company::factory()->create(['created_by' => $this->admin->id]);
 
     actingAs($this->admin)
+        ->delete("/admin/companies/{$company->id}")
+        ->assertRedirect('/admin/companies');
+
+    assertSoftDeleted('companies', ['id' => $company->id]);
+});
+
+it('forbids admin from deleting a company they did not create', function () {
+    $otherAdmin = User::factory()->create();
+    $otherAdmin->assignRole(RoleEnum::Admin->value);
+    $company = Company::factory()->create(['created_by' => $otherAdmin->id]);
+
+    actingAs($this->admin)
+        ->delete("/admin/companies/{$company->id}")
+        ->assertForbidden();
+});
+
+it('allows super admin to delete any company', function () {
+    $company = Company::factory()->create(['created_by' => $this->admin->id]);
+
+    actingAs($this->superAdmin)
         ->delete("/admin/companies/{$company->id}")
         ->assertRedirect('/admin/companies');
 

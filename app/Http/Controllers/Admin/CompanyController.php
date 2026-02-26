@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Data\CompanyData;
 use App\Enums\CompanyTypeEnum;
+use App\Enums\RoleEnum;
 use App\Http\Controllers\Controller;
 use App\Models\Company\Company;
 use Illuminate\Http\RedirectResponse;
@@ -13,15 +14,17 @@ use Inertia\Response;
 
 class CompanyController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $this->authorize('viewAny', Company::class);
 
-        $companies = Company::query()
-            ->with('creator:id,name')
-            ->latest()
-            ->paginate(15)
-            ->withQueryString();
+        $query = Company::query()->with('creator:id,name')->latest();
+
+        if (! $request->user()->hasRole(RoleEnum::SuperAdmin->value)) {
+            $query->where('created_by', $request->user()->id);
+        }
+
+        $companies = $query->paginate(15)->withQueryString();
 
         return Inertia::render('admin/companies/index', [
             'companies' => $companies,

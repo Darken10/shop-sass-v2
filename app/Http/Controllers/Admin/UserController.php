@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Notifications\AccountActivationNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -129,7 +130,7 @@ class UserController extends Controller
 
     public function destroy(User $user): RedirectResponse
     {
-        abort_if($user->id === auth()->id(), 403, 'Vous ne pouvez pas supprimer votre propre compte.');
+        abort_if($user->id === Auth::user()->id, 403, 'Vous ne pouvez pas supprimer votre propre compte.');
 
         $this->authorize('delete', $user);
 
