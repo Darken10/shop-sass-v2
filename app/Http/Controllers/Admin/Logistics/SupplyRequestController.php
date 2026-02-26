@@ -199,6 +199,30 @@ class SupplyRequestController extends Controller
     }
 
     /**
+     * Show the receive form page for a supply request.
+     */
+    public function receiveForm(SupplyRequest $supplyRequest): Response
+    {
+        $this->authorize('approve', $supplyRequest);
+
+        if (! in_array($supplyRequest->status, [SupplyRequestStatus::Approved, SupplyRequestStatus::Delivered])) {
+            return to_route('admin.logistics.supply-requests.show', $supplyRequest);
+        }
+
+        $supplyRequest->load([
+            'sourceWarehouse:id,name,code',
+            'destinationWarehouse:id,name,code',
+            'supplier:id,name,code',
+            'items.product:id,name,code',
+            'createdBy:id,name',
+        ]);
+
+        return Inertia::render('admin/logistics/supply-requests/receive', [
+            'supplyRequest' => $supplyRequest,
+        ]);
+    }
+
+    /**
      * Receive a supply request at the destination.
      * Records actual received quantities, mandatory discrepancy notes, and updates stock.
      */
@@ -312,7 +336,8 @@ class SupplyRequestController extends Controller
             ]);
         });
 
-        return back()->with('success', 'Approvisionnement réceptionné avec succès.');
+        return to_route('admin.logistics.supply-requests.show', $supplyRequest)
+            ->with('success', 'Approvisionnement réceptionné avec succès.');
     }
 
     public function reject(SupplyRequest $supplyRequest): RedirectResponse

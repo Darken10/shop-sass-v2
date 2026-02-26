@@ -58,4 +58,14 @@ class TransferData extends Data
         #[Sometimes, Nullable, ArrayType]
         public ?array $charges = null,
     ) {}
+
+    public static function rules(): array
+    {
+        return [
+            'charges.*.label' => ['required', 'string', 'max:255'],
+            'charges.*.type' => ['required', 'string'],
+            'charges.*.amount' => ['required', 'numeric', 'min:0'],
+            'charges.*.notes' => ['nullable', 'string'],
+        ];
+    }
 }

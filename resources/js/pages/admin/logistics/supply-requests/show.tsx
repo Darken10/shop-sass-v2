@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     AlertTriangle,
     ArrowLeft,
@@ -17,7 +17,7 @@ import {
     X,
 } from 'lucide-react';
 import { useState } from 'react';
-import { index as requestsIndex, approve, deliver, receive, reject, submit } from '@/actions/App/Http/Controllers/Admin/Logistics/SupplyRequestController';
+import { index as requestsIndex, approve, deliver, reject, submit, receiveForm } from '@/actions/App/Http/Controllers/Admin/Logistics/SupplyRequestController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,8 +29,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -106,24 +104,9 @@ const chargeTypeLabels: Record<string, string> = {
     other: 'Autre',
 };
 
-type ReceiveItem = {
-    item_id: string;
-    quantity_received: string;
-    discrepancy_note: string;
-};
-
 export default function SupplyRequestShow({ supplyRequest }: { supplyRequest: SupplyRequest }) {
     const [confirmAction, setConfirmAction] = useState<'approve' | 'deliver' | 'reject' | 'submit' | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [showReceiveDialog, setShowReceiveDialog] = useState(false);
-    const [receiveItems, setReceiveItems] = useState<ReceiveItem[]>(
-        supplyRequest.items.map((item) => ({
-            item_id: item.id,
-            quantity_received: String(item.quantity_delivered ?? item.quantity_requested),
-            discrepancy_note: '',
-        })),
-    );
-    const [receiveErrors, setReceiveErrors] = useState<Record<string, string>>({});
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
@@ -150,46 +133,6 @@ export default function SupplyRequestShow({ supplyRequest }: { supplyRequest: Su
                 setConfirmAction(null);
             },
         });
-    }
-
-    function handleReceive() {
-        const errors: Record<string, string> = {};
-        receiveItems.forEach((ri, idx) => {
-            const original = supplyRequest.items.find((i) => i.id === ri.item_id);
-            if (!original) return;
-            const delivered = original.quantity_delivered ?? original.quantity_requested;
-            if (parseInt(ri.quantity_received) !== delivered && !ri.discrepancy_note.trim()) {
-                errors[`items.${idx}.discrepancy_note`] = 'Explication requise pour l\'écart';
-            }
-        });
-
-        if (Object.keys(errors).length > 0) {
-            setReceiveErrors(errors);
-            return;
-        }
-
-        setIsProcessing(true);
-        router.post(
-            receive(supplyRequest.id).url,
-            {
-                items: receiveItems.map((ri) => ({
-                    item_id: ri.item_id,
-                    quantity_received: parseInt(ri.quantity_received),
-                    discrepancy_note: ri.discrepancy_note || null,
-                })),
-            },
-            {
-                onFinish: () => {
-                    setIsProcessing(false);
-                    setShowReceiveDialog(false);
-                },
-            },
-        );
-    }
-
-    function updateReceiveItem(itemId: string, field: 'quantity_received' | 'discrepancy_note', value: string) {
-        setReceiveItems((prev) => prev.map((ri) => (ri.item_id === itemId ? { ...ri, [field]: value } : ri)));
-        setReceiveErrors({});
     }
 
     const actionLabels = {
@@ -253,9 +196,11 @@ export default function SupplyRequestShow({ supplyRequest }: { supplyRequest: Su
                             </Button>
                         )}
                         {(supplyRequest.status === 'in_transit' || supplyRequest.status === 'delivered') && (
-                            <Button size="sm" onClick={() => setShowReceiveDialog(true)}>
-                                <PackageCheck className="size-4" />
-                                Réceptionner
+                            <Button size="sm" asChild>
+                                <Link href={receiveForm(supplyRequest.id).url}>
+                                    <PackageCheck className="size-4" />
+                                    Réceptionner
+                                </Link>
                             </Button>
                         )}
                     </div>
@@ -581,73 +526,6 @@ export default function SupplyRequestShow({ supplyRequest }: { supplyRequest: Su
                     </DialogContent>
                 </Dialog>
             )}
-
-            {/* Receive dialog */}
-            <Dialog open={showReceiveDialog} onOpenChange={setShowReceiveDialog}>
-                <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                        <DialogTitle>Réceptionner l'approvisionnement</DialogTitle>
-                        <DialogDescription>
-                            Renseignez les quantités reçues pour chaque article. Si la quantité diffère de la livraison, une explication est requise.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="max-h-[60vh] space-y-4 overflow-y-auto py-2">
-                        {supplyRequest.items.map((item, idx) => {
-                            const ri = receiveItems.find((r) => r.item_id === item.id);
-                            if (!ri) return null;
-                            const delivered = item.quantity_delivered ?? item.quantity_requested;
-                            const hasDiscrepancy = parseInt(ri.quantity_received) !== delivered;
-
-                            return (
-                                <div key={item.id} className="rounded-lg border p-3 space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="font-medium text-sm">{item.product.name}</p>
-                                            <p className="text-xs text-muted-foreground">{item.product.code}</p>
-                                        </div>
-                                        <Badge variant="outline">Livré : {delivered}</Badge>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <Label htmlFor={`qty-${item.id}`}>Quantité reçue</Label>
-                                        <Input
-                                            id={`qty-${item.id}`}
-                                            type="number"
-                                            min={0}
-                                            value={ri.quantity_received}
-                                            onChange={(e) => updateReceiveItem(item.id, 'quantity_received', e.target.value)}
-                                        />
-                                    </div>
-                                    {hasDiscrepancy && (
-                                        <div className="space-y-1">
-                                            <Label htmlFor={`note-${item.id}`} className="flex items-center gap-1 text-destructive">
-                                                <AlertTriangle className="size-3" />
-                                                Explication de l'écart *
-                                            </Label>
-                                            <Input
-                                                id={`note-${item.id}`}
-                                                placeholder="Raison de la différence…"
-                                                value={ri.discrepancy_note}
-                                                onChange={(e) => updateReceiveItem(item.id, 'discrepancy_note', e.target.value)}
-                                            />
-                                            {receiveErrors[`items.${idx}.discrepancy_note`] && (
-                                                <p className="text-xs text-destructive">{receiveErrors[`items.${idx}.discrepancy_note`]}</p>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setShowReceiveDialog(false)} disabled={isProcessing}>
-                            Annuler
-                        </Button>
-                        <Button onClick={handleReceive} disabled={isProcessing}>
-                            {isProcessing ? 'Traitement…' : 'Confirmer la réception'}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
         </AppLayout>
     );
 }

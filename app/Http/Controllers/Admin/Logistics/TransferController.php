@@ -187,6 +187,30 @@ class TransferController extends Controller
     }
 
     /**
+     * Show the receive form page for a transfer.
+     */
+    public function receiveForm(Transfer $transfer): Response
+    {
+        $this->authorize('update', $transfer);
+
+        if (! in_array($transfer->status, [TransferStatus::InTransit, TransferStatus::Delivered])) {
+            return to_route('admin.logistics.transfers.show', $transfer);
+        }
+
+        $transfer->load([
+            'sourceWarehouse:id,name,code',
+            'destinationWarehouse:id,name,code',
+            'destinationShop:id,name,code',
+            'items.product:id,name,code',
+            'createdBy:id,name',
+        ]);
+
+        return Inertia::render('admin/logistics/transfers/receive', [
+            'transfer' => $transfer,
+        ]);
+    }
+
+    /**
      * Receive a transfer at the destination.
      * Records actual received quantities, mandatory discrepancy notes, and updates stock.
      */
@@ -307,11 +331,12 @@ class TransferController extends Controller
             ]);
         });
 
-        return back()->with('success', 'Transfert réceptionné avec succès.');
+        return to_route('admin.logistics.transfers.show', $transfer)
+            ->with('success', 'Transfert réceptionné avec succès.');
     }
 
     /**
-     * Legacy deliver action - marks as delivered (expedition confirmed).
+     * Mark as delivered (expedition confirmed at destination).
      * Stock is now managed in receive() instead.
      */
     public function deliver(Transfer $transfer): RedirectResponse

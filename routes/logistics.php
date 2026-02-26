@@ -39,6 +39,8 @@ Route::middleware(['auth', 'verified'])
             ->name('supply-requests.deliver');
         Route::post('supply-requests/{supply_request}/reject', [SupplyRequestController::class, 'reject'])
             ->name('supply-requests.reject');
+        Route::get('supply-requests/{supply_request}/receive', [SupplyRequestController::class, 'receiveForm'])
+            ->name('supply-requests.receive-form');
         Route::post('supply-requests/{supply_request}/receive', [SupplyRequestController::class, 'receive'])
             ->name('supply-requests.receive');
         Route::post('supply-requests/{supply_request}/submit', [SupplyRequestController::class, 'submit'])
@@ -52,6 +54,8 @@ Route::middleware(['auth', 'verified'])
             ->name('transfers.ship');
         Route::post('transfers/{transfer}/deliver', [TransferController::class, 'deliver'])
             ->name('transfers.deliver');
+        Route::get('transfers/{transfer}/receive', [TransferController::class, 'receiveForm'])
+            ->name('transfers.receive-form');
         Route::post('transfers/{transfer}/receive', [TransferController::class, 'receive'])
             ->name('transfers.receive');
         Route::post('transfers/{transfer}/reject', [TransferController::class, 'reject'])
