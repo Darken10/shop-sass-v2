@@ -30,7 +30,7 @@ return new class extends Migration
             $table->uuid('company_id');
             $table->foreign('company_id')->references('id')->on('companies')->cascadeOnDelete();
 
-            $table->uuid('created_by');
+            $table->uuid('created_by')->nullable();
             $table->foreign('created_by')->references('id')->on('users')->nullOnDelete();
 
             $table->softDeletes();
