@@ -15,7 +15,9 @@ return new class extends Migration
             $table->uuid('supplier_id')->nullable()->after('destination_warehouse_id');
             $table->foreign('supplier_id')->references('id')->on('suppliers')->nullOnDelete();
 
-            $table->string('source_warehouse_id')->nullable()->change();
+            $table->dropForeign(['source_warehouse_id']);
+            $table->uuid('source_warehouse_id')->nullable()->change();
+            $table->foreign('source_warehouse_id')->references('id')->on('warehouses')->nullOnDelete();
         });
     }
 
@@ -28,7 +30,9 @@ return new class extends Migration
             $table->dropForeign(['supplier_id']);
             $table->dropColumn('supplier_id');
 
-            $table->string('source_warehouse_id')->nullable(false)->change();
+            $table->dropForeign(['source_warehouse_id']);
+            $table->uuid('source_warehouse_id')->nullable(false)->change();
+            $table->foreign('source_warehouse_id')->references('id')->on('warehouses')->cascadeOnDelete();
         });
     }
 };
