@@ -7,7 +7,7 @@ export default function AppLogo() {
                 <AppLogoIcon className="size-7" />
             </div>
             <div className="ml-1 grid flex-1 text-left text-sm">
-                <span className="mb-0.5 truncate leading-tight font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-fuchsia-600 bg-clip-text text-transparent">
+                <span className="mb-0.5 truncate leading-tight font-bold bg-linear-to-r from-blue-600 via-purple-600 to-fuchsia-600 bg-clip-text text-transparent">
                     FasoTrade
                 </span>
             </div>

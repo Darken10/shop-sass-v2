@@ -38,7 +38,7 @@ export default function Welcome({
                     <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
                         <Link href="/" className="flex items-center gap-2">
                             <AppLogoIcon className="size-8" />
-                            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-fuchsia-600 bg-clip-text text-transparent">
+                            <span className="text-xl font-bold bg-linear-to-r from-blue-600 via-purple-600 to-fuchsia-600 bg-clip-text text-transparent">
                                 FasoTrade
                             </span>
                         </Link>
@@ -53,7 +53,7 @@ export default function Welcome({
                         <div className="flex items-center gap-3">
                             {auth.user ? (
                                 <Link href={dashboard()}>
-                                    <Button className="bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700">
+                                    <Button className="bg-linear-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700">
                                         Tableau de bord
                                         <ArrowRight className="ml-2 size-4" />
                                     </Button>
@@ -67,7 +67,7 @@ export default function Welcome({
                                     </Link>
                                     {canRegister && (
                                         <Link href={register()}>
-                                            <Button className="bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700">
+                                            <Button className="bg-linear-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700">
                                                 S'inscrire
                                             </Button>
                                         </Link>
@@ -82,9 +82,9 @@ export default function Welcome({
                 <section className="relative overflow-hidden pt-16">
                     {/* Background decoration */}
                     <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                        <div className="absolute -top-40 -right-40 h-[600px] w-[600px] rounded-full bg-purple-200/40 blur-3xl dark:bg-purple-900/20" />
-                        <div className="absolute top-20 -left-40 h-[500px] w-[500px] rounded-full bg-blue-200/30 blur-3xl dark:bg-blue-900/15" />
-                        <div className="absolute top-1/2 left-1/2 h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-fuchsia-200/20 blur-3xl dark:bg-fuchsia-900/10" />
+                        <div className="absolute -top-40 -right-40 h-150 w-150 rounded-full bg-purple-200/40 blur-3xl dark:bg-purple-900/20" />
+                        <div className="absolute top-20 -left-40 h-125 w-125 rounded-full bg-blue-200/30 blur-3xl dark:bg-blue-900/15" />
+                        <div className="absolute top-1/2 left-1/2 h-100 w-100 -translate-x-1/2 -translate-y-1/2 rounded-full bg-fuchsia-200/20 blur-3xl dark:bg-fuchsia-900/10" />
                     </div>
 
                     <div className="relative mx-auto flex min-h-[calc(100vh-4rem)] max-w-7xl flex-col items-center justify-center px-4 py-20 text-center sm:px-6 lg:px-8">
@@ -95,7 +95,7 @@ export default function Welcome({
 
                         <h1 className="mb-6 max-w-4xl text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl md:text-6xl lg:text-7xl dark:text-white">
                             Gérez votre{' '}
-                            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-fuchsia-600 bg-clip-text text-transparent">
+                            <span className="bg-linear-to-r from-blue-600 via-purple-600 to-fuchsia-600 bg-clip-text text-transparent">
                                 commerce
                             </span>{' '}
                             en toute simplicité
@@ -110,7 +110,7 @@ export default function Welcome({
                         <div className="flex flex-col items-center gap-4 sm:flex-row">
                             {auth.user ? (
                                 <Link href={dashboard()}>
-                                    <Button size="lg" className="bg-gradient-to-r from-purple-600 to-blue-600 px-8 text-base text-white shadow-lg shadow-purple-500/25 hover:from-purple-700 hover:to-blue-700 hover:shadow-xl hover:shadow-purple-500/30">
+                                    <Button size="lg" className="bg-linear-to-r from-purple-600 to-blue-600 px-8 text-base text-white shadow-lg shadow-purple-500/25 hover:from-purple-700 hover:to-blue-700 hover:shadow-xl hover:shadow-purple-500/30">
                                         Accéder au tableau de bord
                                         <ArrowRight className="ml-2 size-5" />
                                     </Button>
@@ -118,7 +118,7 @@ export default function Welcome({
                             ) : (
                                 <>
                                     <Link href={register()}>
-                                        <Button size="lg" className="bg-gradient-to-r from-purple-600 to-blue-600 px-8 text-base text-white shadow-lg shadow-purple-500/25 hover:from-purple-700 hover:to-blue-700 hover:shadow-xl hover:shadow-purple-500/30">
+                                        <Button size="lg" className="bg-linear-to-r from-purple-600 to-blue-600 px-8 text-base text-white shadow-lg shadow-purple-500/25 hover:from-purple-700 hover:to-blue-700 hover:shadow-xl hover:shadow-purple-500/30">
                                             Commencer gratuitement
                                             <ArrowRight className="ml-2 size-5" />
                                         </Button>
@@ -141,7 +141,7 @@ export default function Welcome({
                                 { value: '24/7', label: 'Support' },
                             ].map((stat) => (
                                 <div key={stat.label} className="text-center">
-                                    <div className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent sm:text-3xl">
+                                    <div className="text-2xl font-bold bg-linear-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent sm:text-3xl">
                                         {stat.value}
                                     </div>
                                     <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -209,7 +209,7 @@ export default function Welcome({
                                     key={feature.title}
                                     className="group relative rounded-2xl border border-gray-200/60 bg-white p-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-purple-200 hover:shadow-lg hover:shadow-purple-500/5 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-purple-800"
                                 >
-                                    <div className={`mb-4 inline-flex rounded-xl bg-gradient-to-br ${feature.gradient} p-3 text-white shadow-md`}>
+                                    <div className={`mb-4 inline-flex rounded-xl bg-linear-to-br ${feature.gradient} p-3 text-white shadow-md`}>
                                         <feature.icon className="size-6" />
                                     </div>
                                     <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
@@ -255,7 +255,7 @@ export default function Welcome({
                                 <ul className="space-y-3">
                                     {['Sessions de caisse sécurisées', 'Scanner de codes-barres intégré', 'Promotions & remises automatiques', 'Paiements mixtes (espèces, mobile)'].map((item) => (
                                         <li key={item} className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300">
-                                            <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-blue-500">
+                                            <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-linear-to-r from-purple-500 to-blue-500">
                                                 <svg className="size-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                                 </svg>
@@ -266,7 +266,7 @@ export default function Welcome({
                                 </ul>
                             </div>
                             <div className="flex-1">
-                                <div className="overflow-hidden rounded-2xl border border-purple-100 bg-gradient-to-br from-purple-50 to-blue-50 p-8 shadow-xl dark:border-purple-900/30 dark:from-purple-950/30 dark:to-blue-950/30">
+                                <div className="overflow-hidden rounded-2xl border border-purple-100 bg-linear-to-br from-purple-50 to-blue-50 p-8 shadow-xl dark:border-purple-900/30 dark:from-purple-950/30 dark:to-blue-950/30">
                                     <div className="grid grid-cols-2 gap-4">
                                         {[
                                             { icon: ShoppingCart, label: 'Ventes aujourd\'hui', value: '127' },
@@ -303,7 +303,7 @@ export default function Welcome({
                                 <ul className="space-y-3">
                                     {['Gestion des fournisseurs & commandes', 'Transferts inter-entrepôts', 'Suivi des véhicules & carburant', 'Mouvements de stock traçables'].map((item) => (
                                         <li key={item} className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300">
-                                            <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-cyan-500">
+                                            <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-linear-to-r from-blue-500 to-cyan-500">
                                                 <svg className="size-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                                 </svg>
@@ -314,7 +314,7 @@ export default function Welcome({
                                 </ul>
                             </div>
                             <div className="flex-1">
-                                <div className="overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50 p-8 shadow-xl dark:border-blue-900/30 dark:from-blue-950/30 dark:to-indigo-950/30">
+                                <div className="overflow-hidden rounded-2xl border border-blue-100 bg-linear-to-br from-blue-50 to-indigo-50 p-8 shadow-xl dark:border-blue-900/30 dark:from-blue-950/30 dark:to-indigo-950/30">
                                     <div className="space-y-4">
                                         {[
                                             { status: 'Livré', from: 'Entrepôt Central', to: 'Boutique Ouaga 1', time: 'Il y a 2h' },
@@ -342,10 +342,10 @@ export default function Welcome({
                 </section>
 
                 {/* ── Why FasoTrade Section ───────────────────── */}
-                <section className="relative bg-gradient-to-br from-purple-900 via-violet-800 to-blue-900 py-24 text-white">
+                <section className="relative bg-linear-to-br from-purple-900 via-violet-800 to-blue-900 py-24 text-white">
                     <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                        <div className="absolute -top-20 -right-20 h-[400px] w-[400px] rounded-full bg-purple-500/20 blur-3xl" />
-                        <div className="absolute -bottom-20 -left-20 h-[400px] w-[400px] rounded-full bg-blue-500/20 blur-3xl" />
+                        <div className="absolute -top-20 -right-20 h-100 w-100 rounded-full bg-purple-500/20 blur-3xl" />
+                        <div className="absolute -bottom-20 -left-20 h-100 w-100 rounded-full bg-blue-500/20 blur-3xl" />
                     </div>
 
                     <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -417,7 +417,7 @@ export default function Welcome({
 
                             {/* Pro plan */}
                             <div className="relative rounded-2xl border-2 border-purple-500 bg-white p-8 shadow-xl dark:bg-gray-900">
-                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-1 text-xs font-semibold text-white">
+                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-linear-to-r from-purple-600 to-blue-600 px-4 py-1 text-xs font-semibold text-white">
                                     Populaire
                                 </div>
                                 <div className="mb-6">
@@ -439,7 +439,7 @@ export default function Welcome({
                                     ))}
                                 </ul>
                                 <Link href={register()} className="block">
-                                    <Button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700">
+                                    <Button className="w-full bg-linear-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700">
                                         Essai gratuit 14 jours
                                     </Button>
                                 </Link>
@@ -475,7 +475,7 @@ export default function Welcome({
                 {/* ── CTA Section ─────────────────────────────── */}
                 <section id="contact" className="py-24">
                     <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-                        <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-purple-600 via-violet-600 to-blue-600 p-12 shadow-2xl sm:p-16">
+                        <div className="overflow-hidden rounded-3xl bg-linear-to-br from-purple-600 via-violet-600 to-blue-600 p-12 shadow-2xl sm:p-16">
                             <AppLogoIcon className="mx-auto mb-6 size-16 drop-shadow-lg" />
                             <h2 className="mb-4 text-3xl font-bold text-white sm:text-4xl">
                                 Prêt à transformer votre commerce ?
@@ -505,7 +505,7 @@ export default function Welcome({
                         <div className="flex flex-col items-center justify-between gap-8 md:flex-row">
                             <div className="flex items-center gap-2">
                                 <AppLogoIcon className="size-7" />
-                                <span className="text-lg font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-fuchsia-600 bg-clip-text text-transparent">
+                                <span className="text-lg font-bold bg-linear-to-r from-blue-600 via-purple-600 to-fuchsia-600 bg-clip-text text-transparent">
                                     FasoTrade
                                 </span>
                             </div>
