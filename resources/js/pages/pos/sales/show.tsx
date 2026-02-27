@@ -111,7 +111,7 @@ export default function SaleShow({ sale }: { sale: Sale }) {
 
             <div className="flex h-full flex-1 flex-col gap-6 p-6">
                 {/* Header */}
-                <div className="flex items-start justify-between">
+                <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex items-center gap-3">
                         <Button variant="ghost" size="icon" asChild>
                             <Link href={salesIndex().url}>
@@ -125,7 +125,7 @@ export default function SaleShow({ sale }: { sale: Sale }) {
                             </p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                         <Badge variant={statusVariant[sale.status] ?? 'outline'}>
                             {statusLabels[sale.status] ?? sale.status}
                         </Badge>

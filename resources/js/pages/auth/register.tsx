@@ -234,7 +234,7 @@ function StepCompanyInfo({
                 <InputError message={errors.company_type} />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
                     <Label htmlFor="company_phone">Téléphone</Label>
                     <Input
@@ -272,7 +272,7 @@ function StepCompanyInfo({
                 <InputError message={errors.company_address} />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
                     <Label htmlFor="company_city">Ville</Label>
                     <Input
@@ -298,7 +298,7 @@ function StepCompanyInfo({
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
                     <Label htmlFor="company_currency">Devise</Label>
                     <Input

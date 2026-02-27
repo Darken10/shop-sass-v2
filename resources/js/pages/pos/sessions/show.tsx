@@ -387,6 +387,7 @@ export default function SessionShow({ session, stats }: { session: Session; stat
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-0">
+                        <div className="overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -468,6 +469,7 @@ export default function SessionShow({ session, stats }: { session: Session; stat
                                 )}
                             </TableBody>
                         </Table>
+                        </div>
                     </CardContent>
                 </Card>
             </div>

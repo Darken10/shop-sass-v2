@@ -224,7 +224,7 @@ export default function ProductForm({
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-4 sm:grid-cols-2">
                                 <div className="grid gap-2">
                                     <Label htmlFor="name">
                                         Nom <span className="text-destructive">*</span>
@@ -299,7 +299,7 @@ export default function ProductForm({
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-4 sm:grid-cols-2">
                                 <div className="grid gap-2">
                                     <Label htmlFor="price">
                                         Prix de vente <span className="text-destructive">*</span>
@@ -314,7 +314,7 @@ export default function ProductForm({
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-4">
+                            <div className="grid gap-4 sm:grid-cols-3">
                                 <div className="grid gap-2">
                                     <Label htmlFor="stock">
                                         Stock <span className="text-destructive">*</span>

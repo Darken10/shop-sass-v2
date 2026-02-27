@@ -153,7 +153,7 @@ export default function SessionSummary({ session }: { session: Session }) {
 
                 {/* Timing */}
                 <Card>
-                    <CardContent className="flex gap-8 py-4 text-sm">
+                    <CardContent className="flex flex-wrap gap-4 py-4 text-sm sm:gap-8">
                         <div>
                             <p className="text-muted-foreground">Ouverture</p>
                             <p className="font-medium">

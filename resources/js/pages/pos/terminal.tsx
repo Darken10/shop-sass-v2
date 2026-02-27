@@ -445,8 +445,8 @@ export default function PosTerminal({
 
             <div className="flex h-full flex-1 flex-col overflow-hidden">
                 {/* Top bar */}
-                <div className="flex items-center justify-between border-b bg-card px-4 py-2">
-                    <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-card px-4 py-2">
+                    <div className="flex flex-wrap items-center gap-2">
                         <ShoppingCart className="size-5 text-primary" />
                         <span className="font-semibold">POS</span>
                         <Badge variant="outline">{session.shop.name}</Badge>
@@ -474,7 +474,7 @@ export default function PosTerminal({
                 </div>
 
                 {/* Main content */}
-                <div className="flex flex-1 overflow-hidden">
+                <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
                     {/* Products panel */}
                     <div className="flex flex-1 flex-col overflow-hidden border-r">
                         {/* Search */}
@@ -548,7 +548,7 @@ export default function PosTerminal({
                     </div>
 
                     {/* Cart panel */}
-                    <div className="flex w-[400px] flex-col bg-card">
+                    <div className="flex w-full flex-col bg-card md:w-[400px]">
                         <div className="border-b p-3">
                             <h2 className="flex items-center gap-2 font-semibold">
                                 <ShoppingCart className="size-4" />

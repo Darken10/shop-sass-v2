@@ -42,7 +42,7 @@ export default function WarehouseForm({ defaults = {}, errors }: Props) {
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-4 sm:grid-cols-2">
                             <div className="grid gap-2">
                                 <Label htmlFor="name">
                                     Nom <span className="text-destructive">*</span>
@@ -92,7 +92,7 @@ export default function WarehouseForm({ defaults = {}, errors }: Props) {
                             <InputError message={errors.address} />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-4 sm:grid-cols-2">
                             <div className="grid gap-2">
                                 <Label htmlFor="city">Ville</Label>
                                 <Input id="city" name="city" defaultValue={defaults.city ?? ''} placeholder="Ville" />

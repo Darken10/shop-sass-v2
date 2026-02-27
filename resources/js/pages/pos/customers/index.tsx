@@ -212,7 +212,7 @@ export default function CustomersIndex({ customers }: { customers: PaginatedCust
                             <Input value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} required />
                             {form.errors.name && <p className="mt-1 text-xs text-destructive">{form.errors.name}</p>}
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-4 sm:grid-cols-2">
                             <div>
                                 <Label>Téléphone</Label>
                                 <Input value={form.data.phone} onChange={(e) => form.setData('phone', e.target.value)} />
@@ -222,7 +222,7 @@ export default function CustomersIndex({ customers }: { customers: PaginatedCust
                                 <Input type="email" value={form.data.email} onChange={(e) => form.setData('email', e.target.value)} />
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-4 sm:grid-cols-2">
                             <div>
                                 <Label>Adresse</Label>
                                 <Input value={form.data.address} onChange={(e) => form.setData('address', e.target.value)} />

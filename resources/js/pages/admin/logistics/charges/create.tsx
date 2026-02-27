@@ -74,7 +74,7 @@ export default function ChargeCreate({ chargeTypes }: { chargeTypes: ChargeType[
                                         <InputError message={errors.label} />
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid gap-4 sm:grid-cols-2">
                                         <div className="space-y-2">
                                             <Label htmlFor="type">Type de charge *</Label>
                                             <Select name="type">
@@ -115,7 +115,7 @@ export default function ChargeCreate({ chargeTypes }: { chargeTypes: ChargeType[
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid gap-4 sm:grid-cols-2">
                                         <div className="space-y-2">
                                             <Label htmlFor="stock_movement_id">Mouvement de stock (opt.)</Label>
                                             <Input

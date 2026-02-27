@@ -218,7 +218,7 @@ export default function PosIndex({ currentSession, shops }: { currentSession: Se
                             </CardHeader>
                             <form onSubmit={handleCloseSession}>
                                 <CardContent className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div className="grid gap-3 sm:grid-cols-2">
                                         <div className="rounded-lg bg-muted p-3 text-center">
                                             <p className="text-xs text-muted-foreground">Espèces</p>
                                             <p className="font-bold">{liveStats.cash.toLocaleString('fr-FR')}</p>

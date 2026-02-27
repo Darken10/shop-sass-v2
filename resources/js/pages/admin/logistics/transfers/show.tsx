@@ -145,7 +145,7 @@ export default function TransferShow({ transfer }: { transfer: Transfer }) {
 
             <div className="flex h-full flex-1 flex-col gap-6 p-6">
                 {/* Header */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-4">
                         <Button asChild variant="ghost" size="icon" className="size-8">
                             <a href={transfersIndex().url}>
@@ -166,7 +166,7 @@ export default function TransferShow({ transfer }: { transfer: Transfer }) {
                             </div>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                         {transfer.status === 'draft' && (
                             <Button size="sm" onClick={() => setConfirmAction('submit')}>
                                 <Send className="size-4" />

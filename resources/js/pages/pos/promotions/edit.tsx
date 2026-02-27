@@ -113,7 +113,7 @@ export default function PromotionEdit({
                                 {form.errors.name && <p className="mt-1 text-xs text-destructive">{form.errors.name}</p>}
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-4 sm:grid-cols-2">
                                 <div>
                                     <Label>Type *</Label>
                                     <Select value={form.data.type} onValueChange={(v) => form.setData('type', v)}>
@@ -140,7 +140,7 @@ export default function PromotionEdit({
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-4 sm:grid-cols-2">
                                 <div>
                                     <Label>Début *</Label>
                                     <Input type="datetime-local" value={form.data.starts_at} onChange={(e) => form.setData('starts_at', e.target.value)} required />

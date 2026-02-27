@@ -85,7 +85,7 @@ export default function CompanyForm({ defaults = {}, errors }: Props) {
                             <InputError message={errors.name} />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-4 sm:grid-cols-2">
                             <div className="grid gap-2">
                                 <Label htmlFor="type">
                                     Type <span className="text-destructive">*</span>
@@ -162,7 +162,7 @@ export default function CompanyForm({ defaults = {}, errors }: Props) {
                             <InputError message={errors.address} />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-4 sm:grid-cols-2">
                             <div className="grid gap-2">
                                 <Label htmlFor="city">Ville</Label>
                                 <Input id="city" name="city" defaultValue={defaults.city ?? ''} placeholder="Paris" />
@@ -180,7 +180,7 @@ export default function CompanyForm({ defaults = {}, errors }: Props) {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-4 sm:grid-cols-2">
                             <div className="grid gap-2">
                                 <Label htmlFor="state">Région / État</Label>
                                 <Input id="state" name="state" defaultValue={defaults.state ?? ''} placeholder="Île-de-France" />

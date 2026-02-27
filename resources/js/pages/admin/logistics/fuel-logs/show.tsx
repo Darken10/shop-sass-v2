@@ -77,7 +77,7 @@ export default function FuelLogShow({ fuelLog }: { fuelLog: FuelLog }) {
                 <div className="grid gap-6 lg:grid-cols-3">
                     <div className="space-y-6 lg:col-span-2">
                         {/* Key metrics */}
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid gap-4 sm:grid-cols-3">
                             <Card>
                                 <CardContent className="pt-6">
                                     <div className="flex items-center gap-3">
@@ -135,7 +135,7 @@ export default function FuelLogShow({ fuelLog }: { fuelLog: FuelLog }) {
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="grid grid-cols-3 gap-4">
+                                    <div className="grid gap-4 sm:grid-cols-3">
                                         <div>
                                             <p className="text-xs text-muted-foreground">Nom</p>
                                             <p className="font-semibold">{fuelLog.vehicle.name}</p>

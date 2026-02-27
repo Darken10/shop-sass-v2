@@ -71,7 +71,7 @@ export default function FuelLogCreate({ vehicles }: { vehicles: Vehicle[] }) {
                                         <InputError message={errors.vehicle_id} />
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid gap-4 sm:grid-cols-2">
                                         <div className="space-y-2">
                                             <Label htmlFor="quantity_liters">Quantité (litres) *</Label>
                                             <Input
@@ -108,7 +108,7 @@ export default function FuelLogCreate({ vehicles }: { vehicles: Vehicle[] }) {
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid gap-4 sm:grid-cols-2">
                                         <div className="space-y-2">
                                             <Label htmlFor="odometer_reading">Kilométrage</Label>
                                             <Input

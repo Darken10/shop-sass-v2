@@ -43,7 +43,7 @@ export default function SupplierForm({ defaults = {}, errors }: Props) {
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-4 sm:grid-cols-2">
                             <div className="grid gap-2">
                                 <Label htmlFor="name">
                                     Nom <span className="text-destructive">*</span>
@@ -70,7 +70,7 @@ export default function SupplierForm({ defaults = {}, errors }: Props) {
                             <InputError message={errors.contact_name} />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-4 sm:grid-cols-2">
                             <div className="grid gap-2">
                                 <Label htmlFor="email">Email</Label>
                                 <Input id="email" name="email" type="email" defaultValue={defaults.email ?? ''} placeholder="email@exemple.com" />

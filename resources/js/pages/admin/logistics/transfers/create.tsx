@@ -136,7 +136,7 @@ export default function TransfersCreate({ warehouses, shops, products, vehicles,
                                             <InputError message={errors.type} />
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid gap-4 sm:grid-cols-2">
                                             <div className="grid gap-2">
                                                 <Label htmlFor="source_warehouse_id">
                                                     Entrepôt source <span className="text-destructive">*</span>
@@ -237,7 +237,7 @@ export default function TransfersCreate({ warehouses, shops, products, vehicles,
                                         <Separator />
 
                                         {/* Transport details */}
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid gap-4 sm:grid-cols-2">
                                             <div className="grid gap-2">
                                                 <Label htmlFor="driver_name">Nom du chauffeur</Label>
                                                 <Input

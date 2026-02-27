@@ -309,6 +309,7 @@ export default function Dashboard({ kpis, revenueByDay, paymentBreakdown, topPro
                             {topProducts.length === 0 ? (
                                 <p className="py-10 text-center text-sm text-muted-foreground">Aucune donnée</p>
                             ) : (
+                                <div className="overflow-x-auto">
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
@@ -329,6 +330,7 @@ export default function Dashboard({ kpis, revenueByDay, paymentBreakdown, topPro
                                         ))}
                                     </TableBody>
                                 </Table>
+                                </div>
                             )}
                         </CardContent>
                     </Card>
@@ -383,6 +385,7 @@ export default function Dashboard({ kpis, revenueByDay, paymentBreakdown, topPro
                             {lowStockProducts.length === 0 ? (
                                 <p className="py-10 text-center text-sm text-muted-foreground">Aucun stock bas détecté</p>
                             ) : (
+                                <div className="overflow-x-auto">
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
@@ -407,6 +410,7 @@ export default function Dashboard({ kpis, revenueByDay, paymentBreakdown, topPro
                                         ))}
                                     </TableBody>
                                 </Table>
+                                </div>
                             )}
                         </CardContent>
                     </Card>
@@ -420,6 +424,7 @@ export default function Dashboard({ kpis, revenueByDay, paymentBreakdown, topPro
                             {recentSales.length === 0 ? (
                                 <p className="py-10 text-center text-sm text-muted-foreground">Aucune vente récente</p>
                             ) : (
+                                <div className="overflow-x-auto">
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
@@ -446,6 +451,7 @@ export default function Dashboard({ kpis, revenueByDay, paymentBreakdown, topPro
                                         ))}
                                     </TableBody>
                                 </Table>
+                                </div>
                             )}
                         </CardContent>
                     </Card>

@@ -58,7 +58,7 @@ export default function SupplierShow({ supplier }: { supplier: Supplier }) {
 
             <div className="flex h-full flex-1 flex-col gap-6 p-6">
                 {/* Header */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-4">
                         <Button asChild variant="ghost" size="icon" className="size-8">
                             <a href={suppliersIndex().url}>
@@ -81,7 +81,7 @@ export default function SupplierShow({ supplier }: { supplier: Supplier }) {
                             </div>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                         <Button asChild variant="outline" size="sm">
                             <Link href={edit(supplier.id).url}>
                                 <Edit className="size-4" />
