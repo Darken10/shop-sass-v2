@@ -1,5 +1,5 @@
-import { Head, Link, router, useForm } from '@inertiajs/react';
-import { DollarSign, LogOut, ShoppingCart, Store } from 'lucide-react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { LogOut, ShoppingCart, Store } from 'lucide-react';
 import { useMemo } from 'react';
 import { index as posIndex, open, close } from '@/actions/App/Http/Controllers/Pos/CashRegisterController';
 import { create as terminalRoute } from '@/actions/App/Http/Controllers/Pos/SaleController';

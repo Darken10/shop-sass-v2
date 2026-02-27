@@ -1,6 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Edit, Plus, Trash2 } from 'lucide-react';
-import { index as promotionsIndex, create as createPromotion, edit as editPromotion, destroy as destroyPromotion } from '@/actions/App/Http/Controllers/Pos/PromotionController';
+import { create as createPromotion, edit as editPromotion, destroy as destroyPromotion } from '@/actions/App/Http/Controllers/Pos/PromotionController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';

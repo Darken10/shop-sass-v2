@@ -24,7 +24,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function PromotionCreate({
     shops,
     products,
-    promotionTypes,
 }: {
     shops: Shop[];
     products: Product[];

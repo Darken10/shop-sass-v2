@@ -1,4 +1,4 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { Check, Printer, QrCode, ShoppingCart } from 'lucide-react';
 import { useRef } from 'react';
 import { index as posIndex } from '@/actions/App/Http/Controllers/Pos/CashRegisterController';

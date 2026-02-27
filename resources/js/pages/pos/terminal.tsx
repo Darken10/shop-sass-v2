@@ -1,25 +1,22 @@
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import {
     AlertTriangle,
     Banknote,
-    CreditCard,
     Minus,
     Package,
     Plus,
     ScanBarcode,
     Search,
     ShoppingCart,
-    Smartphone,
     Trash2,
     User,
     X,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { store as storeSale, searchProducts, lookupBarcode } from '@/actions/App/Http/Controllers/Pos/SaleController';
 import { quickStore as quickStoreCustomer } from '@/actions/App/Http/Controllers/Pos/CustomerController';
+import { store as storeSale, lookupBarcode } from '@/actions/App/Http/Controllers/Pos/SaleController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -32,7 +29,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -94,21 +90,6 @@ type PaymentEntry = {
     reference: string;
 };
 
-const methodLabels: Record<string, string> = {
-    cash: 'Espèces',
-    mobile_money: 'Mobile Money',
-    bank_card: 'Carte bancaire',
-    bank_transfer: 'Virement',
-    customer_credit: 'Crédit client',
-};
-
-const methodIcons: Record<string, typeof Banknote> = {
-    cash: Banknote,
-    mobile_money: Smartphone,
-    bank_card: CreditCard,
-    bank_transfer: CreditCard,
-};
-
 export default function PosTerminal({
     session,
     shopStocks,
@@ -133,7 +114,6 @@ export default function PosTerminal({
     const [isProcessing, setIsProcessing] = useState(false);
     const [newCustomerName, setNewCustomerName] = useState('');
     const [newCustomerPhone, setNewCustomerPhone] = useState('');
-    const barcodeInputRef = useRef<HTMLInputElement>(null);
     const barcodeBufferRef = useRef('');
     const barcodeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -181,6 +161,39 @@ export default function PosTerminal({
         [promotions],
     );
 
+    const addToCartByStock = useCallback(
+        (stockItem: ShopStockItem) => {
+            setCart((prev) => {
+                const existing = prev.find((c) => c.product.id === stockItem.product.id);
+                if (existing) {
+                    if (existing.quantity >= stockItem.available_quantity) return prev;
+                    return prev.map((c) =>
+                        c.product.id === stockItem.product.id
+                            ? {
+                                  ...c,
+                                  quantity: c.quantity + 1,
+                                  discount: calculateDiscount(c.unit_price, c.quantity + 1, c.promotion_id),
+                              }
+                            : c,
+                    );
+                }
+                const unitPrice = Number(stockItem.product.price);
+                return [
+                    ...prev,
+                    {
+                        product: stockItem.product,
+                        quantity: 1,
+                        unit_price: unitPrice,
+                        discount: 0,
+                        promotion_id: null,
+                        available_quantity: stockItem.available_quantity,
+                    },
+                ];
+            });
+        },
+        [calculateDiscount],
+    );
+
     // Barcode scan handler — looks up by code and adds to cart
     const handleBarcodeScan = useCallback(
         async (barcode: string) => {
@@ -216,7 +229,7 @@ export default function PosTerminal({
                 // Silently fail — product not found
             }
         },
-        [shopStocks],
+        [shopStocks, addToCartByStock],
     );
 
     // Global keyboard listener for barcode scanner (keyboard wedge)
@@ -256,36 +269,6 @@ export default function PosTerminal({
             if (barcodeTimerRef.current) clearTimeout(barcodeTimerRef.current);
         };
     }, [handleBarcodeScan]);
-
-    function addToCartByStock(stockItem: ShopStockItem) {
-        setCart((prev) => {
-            const existing = prev.find((c) => c.product.id === stockItem.product.id);
-            if (existing) {
-                if (existing.quantity >= stockItem.available_quantity) return prev;
-                return prev.map((c) =>
-                    c.product.id === stockItem.product.id
-                        ? {
-                              ...c,
-                              quantity: c.quantity + 1,
-                              discount: calculateDiscount(c.unit_price, c.quantity + 1, c.promotion_id),
-                          }
-                        : c,
-                );
-            }
-            const unitPrice = Number(stockItem.product.price);
-            return [
-                ...prev,
-                {
-                    product: stockItem.product,
-                    quantity: 1,
-                    unit_price: unitPrice,
-                    discount: 0,
-                    promotion_id: null,
-                    available_quantity: stockItem.available_quantity,
-                },
-            ];
-        });
-    }
 
     function addToCart(stockItem: ShopStockItem) {
         setCart((prev) => {

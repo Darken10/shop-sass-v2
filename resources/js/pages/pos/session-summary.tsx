@@ -1,9 +1,7 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import { Banknote, CreditCard, FileText, ShoppingCart, Smartphone } from 'lucide-react';
-import { index as posIndex } from '@/actions/App/Http/Controllers/Pos/CashRegisterController';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -58,14 +56,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Point de vente', href: '/pos' },
     { title: 'Résumé de session', href: '#' },
 ];
-
-const methodLabels: Record<string, string> = {
-    cash: 'Espèces',
-    mobile_money: 'Mobile Money',
-    bank_card: 'Carte bancaire',
-    bank_transfer: 'Virement',
-    customer_credit: 'Crédit client',
-};
 
 const statusLabels: Record<string, string> = {
     completed: 'Payée',

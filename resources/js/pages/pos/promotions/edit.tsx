@@ -37,7 +37,6 @@ export default function PromotionEdit({
     promotion,
     shops,
     products,
-    promotionTypes,
 }: {
     promotion: Promotion;
     shops: Shop[];

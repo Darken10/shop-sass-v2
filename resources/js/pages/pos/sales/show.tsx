@@ -1,5 +1,5 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { ArrowLeft, Banknote, FileText, Printer } from 'lucide-react';
+import { ArrowLeft, Banknote, Printer } from 'lucide-react';
 import { useState } from 'react';
 import { index as salesIndex, receipt as saleReceipt, creditPayment } from '@/actions/App/Http/Controllers/Pos/SaleController';
 import { Badge } from '@/components/ui/badge';

@@ -1,11 +1,10 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Eye, FileText, Search } from 'lucide-react';
 import { useState } from 'react';
-import { index as salesIndex, show as showSale, receipt as saleReceipt } from '@/actions/App/Http/Controllers/Pos/SaleController';
-import { index as posIndex } from '@/actions/App/Http/Controllers/Pos/CashRegisterController';
+import { show as showSale, receipt as saleReceipt } from '@/actions/App/Http/Controllers/Pos/SaleController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';

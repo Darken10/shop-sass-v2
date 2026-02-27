@@ -1,7 +1,7 @@
 import { Head, router, useForm } from '@inertiajs/react';
 import { Edit, Plus, Search, Trash2, User } from 'lucide-react';
 import { useState } from 'react';
-import { index as customersIndex, store as storeCustomer, update as updateCustomer, destroy as destroyCustomer } from '@/actions/App/Http/Controllers/Pos/CustomerController';
+import { store as storeCustomer, update as updateCustomer, destroy as destroyCustomer } from '@/actions/App/Http/Controllers/Pos/CustomerController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';

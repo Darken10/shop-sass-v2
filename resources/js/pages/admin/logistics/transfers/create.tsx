@@ -1,5 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
-import { ArrowLeft, CircleDollarSign, MinusCircle, Package, Plus, Replace, Save, Truck } from 'lucide-react';
+import { ArrowLeft, CircleDollarSign, MinusCircle, Package, Plus, Replace, Save } from 'lucide-react';
 import { useState } from 'react';
 import TransferController, { index as transfersIndex } from '@/actions/App/Http/Controllers/Admin/Logistics/TransferController';
 import InputError from '@/components/input-error';

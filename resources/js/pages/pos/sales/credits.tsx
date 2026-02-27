@@ -1,10 +1,10 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Banknote, Eye, Search } from 'lucide-react';
+import { Eye, Search } from 'lucide-react';
 import { useState } from 'react';
-import { credits as creditsRoute, show as showSale } from '@/actions/App/Http/Controllers/Pos/SaleController';
+import { show as showSale } from '@/actions/App/Http/Controllers/Pos/SaleController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -35,11 +35,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Point de vente', href: '/pos' },
     { title: 'Créances', href: '#' },
 ];
-
-const statusLabels: Record<string, string> = {
-    partially_paid: 'Partielle',
-    unpaid: 'Impayée',
-};
 
 export default function SalesCredits({ sales }: { sales: PaginatedSales }) {
     const [searchTerm, setSearchTerm] = useState('');
