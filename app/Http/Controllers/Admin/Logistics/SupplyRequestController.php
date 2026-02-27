@@ -201,7 +201,7 @@ class SupplyRequestController extends Controller
     /**
      * Show the receive form page for a supply request.
      */
-    public function receiveForm(SupplyRequest $supplyRequest): Response
+    public function showReceive(SupplyRequest $supplyRequest): Response
     {
         $this->authorize('approve', $supplyRequest);
 

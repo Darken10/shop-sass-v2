@@ -189,7 +189,7 @@ class TransferController extends Controller
     /**
      * Show the receive form page for a transfer.
      */
-    public function receiveForm(Transfer $transfer): Response
+    public function showReceive(Transfer $transfer): Response
     {
         $this->authorize('update', $transfer);
 

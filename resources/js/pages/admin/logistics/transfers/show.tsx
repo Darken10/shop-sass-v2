@@ -17,7 +17,7 @@ import {
     X,
 } from 'lucide-react';
 import { useState } from 'react';
-import { index as transfersIndex, approve, ship, deliver, reject, submit, receiveForm } from '@/actions/App/Http/Controllers/Admin/Logistics/TransferController';
+import { index as transfersIndex, approve, ship, deliver, reject, submit, showReceive } from '@/actions/App/Http/Controllers/Admin/Logistics/TransferController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -198,7 +198,7 @@ export default function TransferShow({ transfer }: { transfer: Transfer }) {
                                     Livré
                                 </Button>
                                 <Button size="sm" asChild>
-                                    <Link href={receiveForm(transfer.id).url}>
+                                    <Link href={showReceive(transfer.id).url}>
                                         <PackageCheck className="size-4" />
                                         Réceptionner
                                     </Link>
@@ -207,7 +207,7 @@ export default function TransferShow({ transfer }: { transfer: Transfer }) {
                         )}
                         {transfer.status === 'delivered' && (
                             <Button size="sm" asChild>
-                                <Link href={receiveForm(transfer.id).url}>
+                                <Link href={showReceive(transfer.id).url}>
                                     <PackageCheck className="size-4" />
                                     Réceptionner
                                 </Link>

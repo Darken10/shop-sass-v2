@@ -17,7 +17,7 @@ import {
     X,
 } from 'lucide-react';
 import { useState } from 'react';
-import { index as requestsIndex, approve, deliver, reject, submit, receiveForm } from '@/actions/App/Http/Controllers/Admin/Logistics/SupplyRequestController';
+import { index as requestsIndex, approve, deliver, reject, submit, showReceive } from '@/actions/App/Http/Controllers/Admin/Logistics/SupplyRequestController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -197,7 +197,7 @@ export default function SupplyRequestShow({ supplyRequest }: { supplyRequest: Su
                         )}
                         {(supplyRequest.status === 'in_transit' || supplyRequest.status === 'delivered') && (
                             <Button size="sm" asChild>
-                                <Link href={receiveForm(supplyRequest.id).url}>
+                                <Link href={showReceive(supplyRequest.id).url}>
                                     <PackageCheck className="size-4" />
                                     Réceptionner
                                 </Link>
