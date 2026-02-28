@@ -166,7 +166,7 @@ export default function TransferShow({ transfer }: { transfer: Transfer }) {
                             </div>
                         </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="hidden sm:flex flex-wrap items-center gap-2">
                         {transfer.status === 'draft' && (
                             <Button size="sm" onClick={() => setConfirmAction('submit')}>
                                 <Send className="size-4" />
@@ -217,6 +217,55 @@ export default function TransferShow({ transfer }: { transfer: Transfer }) {
                 </div>
 
                 <Separator />
+
+                <div className="flex sm:hidden flex-col gap-2">
+                    {transfer.status === 'draft' && (
+                        <Button size="sm" className="w-full" onClick={() => setConfirmAction('submit')}>
+                            <Send className="size-4" />
+                            Soumettre
+                        </Button>
+                    )}
+                    {transfer.status === 'pending' && (
+                        <>
+                            <Button variant="outline" size="sm" className="w-full" onClick={() => setConfirmAction('approve')}>
+                                <Check className="size-4" />
+                                Approuver
+                            </Button>
+                            <Button variant="destructive" size="sm" className="w-full" onClick={() => setConfirmAction('reject')}>
+                                <X className="size-4" />
+                                Rejeter
+                            </Button>
+                        </>
+                    )}
+                    {transfer.status === 'approved' && (
+                        <Button size="sm" className="w-full" onClick={() => setConfirmAction('ship')}>
+                            <Ship className="size-4" />
+                            Expédier
+                        </Button>
+                    )}
+                    {transfer.status === 'in_transit' && (
+                        <>
+                            <Button size="sm" variant="outline" className="w-full" onClick={() => setConfirmAction('deliver')}>
+                                <Truck className="size-4" />
+                                Livré
+                            </Button>
+                            <Button size="sm" asChild className="w-full">
+                                <Link href={showReceive(transfer.id).url}>
+                                    <PackageCheck className="size-4" />
+                                    Réceptionner
+                                </Link>
+                            </Button>
+                        </>
+                    )}
+                    {transfer.status === 'delivered' && (
+                        <Button size="sm" asChild className="w-full">
+                            <Link href={showReceive(transfer.id).url}>
+                                <PackageCheck className="size-4" />
+                                Réceptionner
+                            </Link>
+                        </Button>
+                    )}
+                </div>
 
                 <div className="grid gap-6 lg:grid-cols-3">
                     <div className="space-y-6 lg:col-span-2">

@@ -84,7 +84,7 @@ export default function CompaniesShow({ company }: { company: CompanyWithId }) {
                             <p className="text-sm text-muted-foreground">{typeLabels[company.type]}</p>
                         </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="hidden sm:flex flex-wrap items-center gap-2">
                         <Button asChild variant="outline" size="sm">
                             <Link href={edit(company.id).url}>
                                 <Edit className="size-4" />
@@ -103,6 +103,19 @@ export default function CompaniesShow({ company }: { company: CompanyWithId }) {
                 </div>
 
                 <Separator />
+
+                <div className="flex sm:hidden flex-col gap-2">
+                    <Button asChild variant="outline" size="sm" className="w-full">
+                        <Link href={edit(company.id).url}>
+                            <Edit className="size-4" />
+                            Modifier
+                        </Link>
+                    </Button>
+                    <Button variant="destructive" size="sm" className="w-full" onClick={() => setShowDeleteDialog(true)}>
+                        <Trash2 className="size-4" />
+                        Supprimer
+                    </Button>
+                </div>
 
                 <div className="grid gap-6 lg:grid-cols-3">
                     {/* Main details */}

@@ -18,7 +18,10 @@ export function AppSidebarHeader({
                 <Link href={dashboard()} className="flex items-center md:hidden">
                     <AppLogoIcon className="size-6 text-foreground" />
                 </Link>
-                <Breadcrumbs breadcrumbs={breadcrumbs} />
+                {/* Breadcrumbs hidden on mobile */}
+                <div className="hidden md:flex">
+                    <Breadcrumbs breadcrumbs={breadcrumbs} />
+                </div>
             </div>
         </header>
     );

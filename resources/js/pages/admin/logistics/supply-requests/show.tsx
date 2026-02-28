@@ -168,7 +168,7 @@ export default function SupplyRequestShow({ supplyRequest }: { supplyRequest: Su
                             </div>
                         </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="hidden sm:flex flex-wrap items-center gap-2">
                         {supplyRequest.status === 'draft' && (
                             <Button size="sm" onClick={() => setConfirmAction('submit')}>
                                 <Send className="size-4" />
@@ -205,6 +205,41 @@ export default function SupplyRequestShow({ supplyRequest }: { supplyRequest: Su
                 </div>
 
                 <Separator />
+
+                <div className="flex sm:hidden flex-col gap-2">
+                    {supplyRequest.status === 'draft' && (
+                        <Button size="sm" className="w-full" onClick={() => setConfirmAction('submit')}>
+                            <Send className="size-4" />
+                            Soumettre
+                        </Button>
+                    )}
+                    {supplyRequest.status === 'pending' && (
+                        <>
+                            <Button variant="outline" size="sm" className="w-full" onClick={() => setConfirmAction('approve')}>
+                                <Check className="size-4" />
+                                Approuver
+                            </Button>
+                            <Button variant="destructive" size="sm" className="w-full" onClick={() => setConfirmAction('reject')}>
+                                <X className="size-4" />
+                                Rejeter
+                            </Button>
+                        </>
+                    )}
+                    {supplyRequest.status === 'approved' && (
+                        <Button size="sm" className="w-full" onClick={() => setConfirmAction('deliver')}>
+                            <Truck className="size-4" />
+                            Marquer livrée
+                        </Button>
+                    )}
+                    {(supplyRequest.status === 'in_transit' || supplyRequest.status === 'delivered') && (
+                        <Button size="sm" asChild className="w-full">
+                            <Link href={showReceive(supplyRequest.id).url}>
+                                <PackageCheck className="size-4" />
+                                Réceptionner
+                            </Link>
+                        </Button>
+                    )}
+                </div>
 
                 <div className="grid gap-6 lg:grid-cols-3">
                     <div className="space-y-6 lg:col-span-2">

@@ -109,7 +109,7 @@ export default function ProductShow({ product }: { product: Product }) {
                             </div>
                         </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="hidden sm:flex flex-wrap items-center gap-2">
                         <Button asChild variant="outline" size="sm">
                             <Link href={edit(product.id).url}>
                                 <Edit className="size-4" />
@@ -124,6 +124,19 @@ export default function ProductShow({ product }: { product: Product }) {
                 </div>
 
                 <Separator />
+
+                <div className="flex sm:hidden flex-col gap-2">
+                    <Button asChild variant="outline" size="sm" className="w-full">
+                        <Link href={edit(product.id).url}>
+                            <Edit className="size-4" />
+                            Modifier
+                        </Link>
+                    </Button>
+                    <Button variant="destructive" size="sm" className="w-full" onClick={() => setShowDelete(true)}>
+                        <Trash2 className="size-4" />
+                        Supprimer
+                    </Button>
+                </div>
 
                 <div className="grid gap-6 lg:grid-cols-3">
                     {/* Main info */}
