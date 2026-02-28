@@ -1,7 +1,8 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, Building2, Edit, Globe, Mail, MapPin, Phone, Trash2 } from 'lucide-react';
+import { ArrowLeft, Building2, Edit, Globe, Mail, MapPin, Phone, Settings, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { destroy, edit, index as companiesIndex } from '@/actions/App/Http/Controllers/Admin/CompanyController';
+import { edit as editSettings } from '@/routes/company-settings';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -91,6 +92,12 @@ export default function CompaniesShow({ company }: { company: CompanyWithId }) {
                                 Modifier
                             </Link>
                         </Button>
+                        <Button asChild variant="secondary" size="sm">
+                            <Link href={editSettings().url}>
+                                <Settings className="size-4" />
+                                Configurer
+                            </Link>
+                        </Button>
                         <Button
                             variant="destructive"
                             size="sm"
@@ -109,6 +116,12 @@ export default function CompaniesShow({ company }: { company: CompanyWithId }) {
                         <Link href={edit(company.id).url}>
                             <Edit className="size-4" />
                             Modifier
+                        </Link>
+                    </Button>
+                    <Button asChild variant="secondary" size="sm" className="w-full">
+                        <Link href={editSettings().url}>
+                            <Settings className="size-4" />
+                            Configurer
                         </Link>
                     </Button>
                     <Button variant="destructive" size="sm" className="w-full" onClick={() => setShowDeleteDialog(true)}>

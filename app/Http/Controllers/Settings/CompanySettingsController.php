@@ -12,7 +12,7 @@ use Inertia\Response;
 class CompanySettingsController extends Controller
 {
     /**
-     * Show the company notification settings page.
+     * Show the company settings page.
      */
     public function edit(Request $request): Response
     {
@@ -21,12 +21,26 @@ class CompanySettingsController extends Controller
         abort_unless($company, 403, 'Aucune entreprise associée à votre compte.');
 
         return Inertia::render('settings/company', [
-            'company' => $company->only(['id', 'name', 'notification_settings']),
+            'company' => $company->only([
+                'id',
+                'name',
+                'email',
+                'phone',
+                'website',
+                'address',
+                'city',
+                'state',
+                'postal_code',
+                'country',
+                'description',
+                'notification_settings',
+                'settings',
+            ]),
         ]);
     }
 
     /**
-     * Update the company notification settings.
+     * Update the company settings.
      */
     public function update(CompanySettingsUpdateRequest $request): RedirectResponse
     {
@@ -34,11 +48,14 @@ class CompanySettingsController extends Controller
 
         abort_unless($company, 403, 'Aucune entreprise associée à votre compte.');
 
+        $validated = $request->validated();
+
         $company->update([
-            'notification_settings' => $request->validated()['notification_settings'],
+            'notification_settings' => $validated['notification_settings'] ?? $company->notification_settings,
+            'settings' => $validated['settings'] ?? $company->settings,
         ]);
 
         return to_route('company-settings.edit')
-            ->with('success', 'Paramètres de notifications mis à jour.');
+            ->with('success', 'Paramètres de l\'entreprise mis à jour.');
     }
 }

@@ -35,6 +35,7 @@ class Company extends Model
         'type',
         'status',
         'notification_settings',
+        'settings',
         'created_by',
     ];
 
@@ -42,6 +43,7 @@ class Company extends Model
         'type' => CompanyTypeEnum::class,
         'status' => CompanyStatusEnum::class,
         'notification_settings' => 'array',
+        'settings' => 'array',
     ];
 
     public function getLogoAttribute(?string $value): ?string
