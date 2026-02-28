@@ -34,12 +34,14 @@ class Company extends Model
         'logo',
         'type',
         'status',
+        'notification_settings',
         'created_by',
     ];
 
     protected $casts = [
         'type' => CompanyTypeEnum::class,
         'status' => CompanyStatusEnum::class,
+        'notification_settings' => 'array',
     ];
 
     public function getLogoAttribute(?string $value): ?string

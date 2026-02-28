@@ -18,9 +18,12 @@ use App\Models\Logistics\Vehicle;
 use App\Models\Logistics\Warehouse;
 use App\Models\Logistics\WarehouseStock;
 use App\Models\Product\Product;
+use App\Models\User;
+use App\Notifications\TransferReceivedNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -330,6 +333,13 @@ class TransferController extends Controller
                 'received_by' => auth()->id(),
             ]);
         });
+
+        $managers = User::query()
+            ->where('company_id', $transfer->company_id)
+            ->whereHas('roles', fn ($q) => $q->whereIn('name', ['super admin', 'admin', 'gestionnaire']))
+            ->get();
+
+        Notification::send($managers, new TransferReceivedNotification($transfer));
 
         return to_route('admin.logistics.transfers.show', $transfer)
             ->with('success', 'Transfert réceptionné avec succès.');

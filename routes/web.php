@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ActivateAccountController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -20,6 +21,12 @@ Route::get('activate/{user}', [ActivateAccountController::class, 'show'])
     ->name('account.activate');
 Route::post('activate/{user}', [ActivateAccountController::class, 'store'])
     ->name('account.activate.store');
+
+Route::middleware('auth')->group(function () {
+    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
+    Route::post('notifications/{notification}/mark-read', [NotificationController::class, 'markRead'])->name('notifications.markRead');
+});
 
 require __DIR__.'/settings.php';
 require __DIR__.'/admin.php';
