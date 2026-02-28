@@ -48,7 +48,7 @@ export default function FuelLogIndex({ fuelLogs }: { fuelLogs: PaginatedFuelLogs
                             <p className="text-sm text-muted-foreground">{fuelLogs.total} enregistrement(s)</p>
                         </div>
                     </div>
-                    <Button asChild size="sm">
+                    <Button asChild size="sm" className="hidden sm:flex">
                         <Link href={create().url}>
                             <Plus className="size-4" />
                             Nouveau ravitaillement
@@ -57,6 +57,13 @@ export default function FuelLogIndex({ fuelLogs }: { fuelLogs: PaginatedFuelLogs
                 </div>
 
                 <Separator />
+
+                <Button asChild size="sm" className="w-full sm:hidden">
+                    <Link href={create().url}>
+                        <Plus className="size-4" />
+                        Nouveau ravitaillement
+                    </Link>
+                </Button>
 
                 {fuelLogs.data.length === 0 ? (
                     <div className="flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed py-16">

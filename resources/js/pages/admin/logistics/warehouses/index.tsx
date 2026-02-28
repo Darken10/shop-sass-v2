@@ -85,7 +85,7 @@ export default function WarehousesIndex({ warehouses }: { warehouses: PaginatedW
                             </p>
                         </div>
                     </div>
-                    <Button asChild size="sm">
+                    <Button asChild size="sm" className="hidden sm:flex">
                         <Link href={create().url} prefetch>
                             <Plus className="size-4" />
                             Nouvel entrepôt
@@ -94,6 +94,13 @@ export default function WarehousesIndex({ warehouses }: { warehouses: PaginatedW
                 </div>
 
                 <Separator />
+
+                <Button asChild size="sm" className="w-full sm:hidden">
+                    <Link href={create().url} prefetch>
+                        <Plus className="size-4" />
+                        Nouvel entrepôt
+                    </Link>
+                </Button>
 
                 {warehouses.data.length === 0 ? (
                     <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed py-20 text-center">

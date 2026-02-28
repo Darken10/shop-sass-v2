@@ -59,7 +59,7 @@ export default function ChargeIndex({ charges }: { charges: PaginatedCharges }) 
                             <p className="text-sm text-muted-foreground">{charges.total} charge(s)</p>
                         </div>
                     </div>
-                    <Button asChild size="sm">
+                    <Button asChild size="sm" className="hidden sm:flex">
                         <Link href={create().url}>
                             <Plus className="size-4" />
                             Nouvelle charge
@@ -68,6 +68,13 @@ export default function ChargeIndex({ charges }: { charges: PaginatedCharges }) 
                 </div>
 
                 <Separator />
+
+                <Button asChild size="sm" className="w-full sm:hidden">
+                    <Link href={create().url}>
+                        <Plus className="size-4" />
+                        Nouvelle charge
+                    </Link>
+                </Button>
 
                 {charges.data.length === 0 ? (
                     <div className="flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed py-16">

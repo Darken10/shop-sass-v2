@@ -53,12 +53,18 @@ export default function PromotionsIndex({ promotions }: { promotions: PaginatedP
                         <h1 className="text-2xl font-bold">Promotions</h1>
                         <p className="text-sm text-muted-foreground">{promotions.total} promotion{promotions.total > 1 ? 's' : ''}</p>
                     </div>
-                    <Button asChild>
+                    <Button asChild className="hidden sm:flex">
                         <Link href={createPromotion().url}>
                             <Plus className="size-4" /> Nouvelle promotion
                         </Link>
                     </Button>
                 </div>
+
+                <Button asChild className="w-full sm:hidden">
+                    <Link href={createPromotion().url}>
+                        <Plus className="size-4" /> Nouvelle promotion
+                    </Link>
+                </Button>
 
                 <Card>
                     <CardContent className="p-0">

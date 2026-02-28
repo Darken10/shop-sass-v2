@@ -72,7 +72,7 @@ export default function StocksIndex({ stocks }: { stocks: PaginatedStocks }) {
                             </p>
                         </div>
                     </div>
-                    <Button asChild size="sm">
+                    <Button asChild size="sm" className="hidden sm:flex">
                         <Link href={create().url} prefetch>
                             <Plus className="size-4" />
                             Ajouter un stock
@@ -81,6 +81,13 @@ export default function StocksIndex({ stocks }: { stocks: PaginatedStocks }) {
                 </div>
 
                 <Separator />
+
+                <Button asChild size="sm" className="w-full sm:hidden">
+                    <Link href={create().url} prefetch>
+                        <Plus className="size-4" />
+                        Ajouter un stock
+                    </Link>
+                </Button>
 
                 {stocks.data.length === 0 ? (
                     <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed py-20 text-center">

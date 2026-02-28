@@ -107,7 +107,7 @@ export default function UsersIndex({ users }: { users: PaginatedUsers }) {
                             </p>
                         </div>
                     </div>
-                    <Button asChild size="sm">
+                    <Button asChild size="sm" className="hidden sm:flex">
                         <Link href={create().url} prefetch>
                             <Plus className="size-4" />
                             Nouvel utilisateur
@@ -116,6 +116,13 @@ export default function UsersIndex({ users }: { users: PaginatedUsers }) {
                 </div>
 
                 <Separator />
+
+                <Button asChild size="sm" className="w-full sm:hidden">
+                    <Link href={create().url} prefetch>
+                        <Plus className="size-4" />
+                        Nouvel utilisateur
+                    </Link>
+                </Button>
 
                 {/* Cards grid */}
                 {users.data.length === 0 ? (

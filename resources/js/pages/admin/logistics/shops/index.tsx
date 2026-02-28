@@ -85,7 +85,7 @@ export default function ShopsIndex({ shops }: { shops: PaginatedShops }) {
                             </p>
                         </div>
                     </div>
-                    <Button asChild size="sm">
+                    <Button asChild size="sm" className="hidden sm:flex">
                         <Link href={create().url} prefetch>
                             <Plus className="size-4" />
                             Nouveau magasin
@@ -94,6 +94,13 @@ export default function ShopsIndex({ shops }: { shops: PaginatedShops }) {
                 </div>
 
                 <Separator />
+
+                <Button asChild size="sm" className="w-full sm:hidden">
+                    <Link href={create().url} prefetch>
+                        <Plus className="size-4" />
+                        Nouveau magasin
+                    </Link>
+                </Button>
 
                 {shops.data.length === 0 ? (
                     <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed py-20 text-center">
