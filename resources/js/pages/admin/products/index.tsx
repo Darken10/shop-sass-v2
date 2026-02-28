@@ -102,7 +102,7 @@ export default function ProductsIndex({ products }: { products: PaginatedProduct
                             </p>
                         </div>
                     </div>
-                    <Button asChild size="sm">
+                    <Button asChild size="sm" className="hidden sm:flex">
                         <Link href={create().url} prefetch>
                             <Plus className="size-4" />
                             Nouveau produit
@@ -111,6 +111,14 @@ export default function ProductsIndex({ products }: { products: PaginatedProduct
                 </div>
 
                 <Separator />
+
+                {/* Mobile CTA - full width below separator */}
+                <Button asChild size="sm" className="w-full sm:hidden">
+                    <Link href={create().url} prefetch>
+                        <Plus className="size-4" />
+                        Nouveau produit
+                    </Link>
+                </Button>
 
                 {/* Cards grid */}
                 {products.data.length === 0 ? (
