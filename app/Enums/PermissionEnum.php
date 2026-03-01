@@ -125,6 +125,21 @@ enum PermissionEnum: string
     case UpdatePromotion = 'update promotion';
     case DeletePromotion = 'delete promotion';
 
+    // Finances
+    case ViewFinancialDashboard = 'view financial dashboard';
+    case ManageAccounts = 'manage accounts';
+    case CreateJournalEntry = 'create journal entry';
+    case ReadJournalEntry = 'read journal entry';
+    case PostJournalEntry = 'post journal entry';
+    case VoidJournalEntry = 'void journal entry';
+    case CreateExpense = 'create expense';
+    case ReadExpense = 'read expense';
+    case ApproveExpense = 'approve expense';
+    case DeleteExpense = 'delete expense';
+    case GenerateFinancialReport = 'generate financial report';
+    case ReadFinancialReport = 'read financial report';
+    case ManageExpenseCategories = 'manage expense categories';
+
     public static function all(): array
     {
         return array_map(fn (self $permission) => $permission->value, self::cases());

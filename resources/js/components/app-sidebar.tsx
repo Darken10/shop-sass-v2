@@ -1,22 +1,30 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     Banknote,
+    BookOpen,
     Building2,
+    Calculator,
     Clock,
     Coins,
     CreditCard,
+    FileBarChart,
     Fuel,
     LayoutGrid,
+    LineChart,
     Package,
     PackageSearch,
     Percent,
+    Receipt,
     Repeat2,
     Replace,
+    Scale,
     ShoppingCart,
     Store,
+    TrendingUp,
     Truck,
     Users,
     UserSquare,
+    Wallet,
     Warehouse,
 } from 'lucide-react';
 import { index as companiesIndex } from '@/actions/App/Http/Controllers/Admin/CompanyController';
@@ -36,6 +44,12 @@ import { index as posIndex, sessions as sessionsIndex } from '@/actions/App/Http
 import { index as customersIndex } from '@/actions/App/Http/Controllers/Pos/CustomerController';
 import { index as promotionsIndex } from '@/actions/App/Http/Controllers/Pos/PromotionController';
 import { index as salesIndex, credits as creditsIndex } from '@/actions/App/Http/Controllers/Pos/SaleController';
+import { accounts as accountsPage, journal as journalPage, balanceSheet as balanceSheetPage, ledger as ledgerPage } from '@/actions/App/Http/Controllers/Finance/AccountingController';
+import { index as expensesIndex } from '@/actions/App/Http/Controllers/Finance/ExpenseController';
+import FinancialOverviewController from '@/actions/App/Http/Controllers/Finance/FinancialOverviewController';
+import ProfitLossController from '@/actions/App/Http/Controllers/Finance/ProfitLossController';
+import CashFlowController from '@/actions/App/Http/Controllers/Finance/CashFlowController';
+import { index as reportsIndex } from '@/actions/App/Http/Controllers/Finance/FinancialReportController';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -145,6 +159,21 @@ export function AppSidebar() {
 
     const showPos = posItems.length > 0;
 
+    // Finance items (visible per-permission)
+    const financeItems: LogisticsItem[] = [
+        ...(has('view financial dashboard') ? [{ title: 'Vue d\'ensemble', href: FinancialOverviewController().url, icon: LineChart }] : []),
+        ...(has('view financial dashboard') ? [{ title: 'Compte de résultat', href: ProfitLossController().url, icon: TrendingUp }] : []),
+        ...(has('view financial dashboard') ? [{ title: 'Flux de trésorerie', href: CashFlowController().url, icon: Wallet }] : []),
+        ...(has('read expense') ? [{ title: 'Dépenses', href: expensesIndex().url, icon: Receipt }] : []),
+        ...(has('manage accounts') ? [{ title: 'Plan comptable', href: accountsPage().url, icon: BookOpen }] : []),
+        ...(has('read journal entry') ? [{ title: 'Journal', href: journalPage().url, icon: Calculator }] : []),
+        ...(has('read journal entry') ? [{ title: 'Grand livre', href: ledgerPage().url, icon: Coins }] : []),
+        ...(has('manage accounts') ? [{ title: 'Bilan', href: balanceSheetPage().url, icon: Scale }] : []),
+        ...(has('read financial report') ? [{ title: 'Rapports', href: reportsIndex().url, icon: FileBarChart }] : []),
+    ];
+
+    const showFinance = financeItems.length > 0;
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -185,6 +214,24 @@ export function AppSidebar() {
                         <SidebarGroupLabel>Point de vente</SidebarGroupLabel>
                         <SidebarMenu>
                             {posItems.map((item) => (
+                                <SidebarMenuItem key={item.title}>
+                                    <SidebarMenuButton asChild isActive={isCurrentUrl(item.href)}>
+                                        <Link href={item.href} prefetch>
+                                            <item.icon />
+                                            <span>{item.title}</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            ))}
+                        </SidebarMenu>
+                    </SidebarGroup>
+                )}
+
+                {showFinance && (
+                    <SidebarGroup className="px-2 py-0">
+                        <SidebarGroupLabel>Finances</SidebarGroupLabel>
+                        <SidebarMenu>
+                            {financeItems.map((item) => (
                                 <SidebarMenuItem key={item.title}>
                                     <SidebarMenuButton asChild isActive={isCurrentUrl(item.href)}>
                                         <Link href={item.href} prefetch>
