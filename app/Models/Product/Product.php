@@ -53,7 +53,16 @@ class Product extends Model
 
     public function getImageAttribute(?string $value): ?string
     {
-        return $value ? Storage::url($value) : null;
+        if (! $value) {
+            return null;
+        }
+
+        // Remote URL (e.g. imported from global catalog) — return as-is.
+        if (str_starts_with($value, 'http')) {
+            return $value;
+        }
+
+        return Storage::url($value);
     }
 
     public function category(): BelongsTo

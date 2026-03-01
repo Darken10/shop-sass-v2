@@ -79,7 +79,7 @@ class CatalogProductController extends Controller
             'stock_alert' => $validated['stock_alert'] ?? 0,
             'unity' => $validated['unity'],
             'status' => $validated['status'],
-            'image' => null,
+            'image' => $catalogProduct->image_url,
             'category_id' => $validated['category_id'],
             'catalog_product_id' => $catalogProduct->id,
             'created_by' => $request->user()->id,
