@@ -10,6 +10,8 @@ use App\Models\Catalog\CatalogProduct;
 use App\Models\Product\Product;
 use App\Models\Product\ProductCategory;
 use App\Services\CatalogProductService;
+use App\Models\Logistics\Shop;
+use App\Models\Logistics\ShopStock;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -68,15 +70,18 @@ class CatalogProductController extends Controller
         }
 
         $validated = $request->validated();
+        $companyId = $request->user()->company_id;
+        $stock = $validated['stock'];
+        $stockAlert = $validated['stock_alert'] ?? 0;
 
-        Product::create([
+        $product = Product::create([
             'name' => $catalogProduct->name,
             'code' => $catalogProduct->barcode,
             'description' => $catalogProduct->description,
             'price' => $validated['price'],
             'cost_price' => $validated['cost_price'] ?? null,
-            'stock' => $validated['stock'],
-            'stock_alert' => $validated['stock_alert'] ?? 0,
+            'stock' => $stock,
+            'stock_alert' => $stockAlert,
             'unity' => $validated['unity'],
             'status' => $validated['status'],
             'image' => $catalogProduct->image_url,
@@ -85,7 +90,23 @@ class CatalogProductController extends Controller
             'created_by' => $request->user()->id,
         ]);
 
-        return back()->with('success', "\"{$catalogProduct->name}\" a été ajouté à votre catalogue.");
+        // Create ShopStock entries for all shops in the company
+        $shops = Shop::withoutGlobalScopes()
+            ->where('company_id', $companyId)
+            ->where('is_active', true)
+            ->get();
+
+        foreach ($shops as $shop) {
+            ShopStock::create([
+                'product_id' => $product->id,
+                'shop_id' => $shop->id,
+                'quantity' => $stock,
+                'stock_alert' => $stockAlert,
+                'company_id' => $companyId,
+            ]);
+        }
+
+        return back()->with('success', "\"{$catalogProduct->name}\" a été ajouté à votre catalogue et est maintenant disponible à la vente.");
     }
 
     /**

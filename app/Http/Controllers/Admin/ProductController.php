@@ -10,6 +10,8 @@ use App\Http\Requests\Product\UpdateProductRequest;
 use App\Models\Product\Product;
 use App\Models\Product\ProductCategory;
 use App\Models\Product\ProductTag;
+use App\Models\Logistics\Shop;
+use App\Models\Logistics\ShopStock;
 use App\Services\CatalogProductService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -80,6 +82,26 @@ class ProductController extends Controller
 
         if (! empty($validated['tags'])) {
             $product->tags()->attach($validated['tags']);
+        }
+
+        // Create ShopStock entries for all shops in the company
+        $companyId = $request->user()->company_id;
+        $stock = $validated['stock'];
+        $stockAlert = $validated['stock_alert'] ?? 0;
+
+        $shops = Shop::withoutGlobalScopes()
+            ->where('company_id', $companyId)
+            ->where('is_active', true)
+            ->get();
+
+        foreach ($shops as $shop) {
+            ShopStock::create([
+                'product_id' => $product->id,
+                'shop_id' => $shop->id,
+                'quantity' => $stock,
+                'stock_alert' => $stockAlert,
+                'company_id' => $companyId,
+            ]);
         }
 
         return to_route('admin.products.show', $product)
@@ -179,6 +201,24 @@ class ProductController extends Controller
             'catalog_product_id' => $this->catalogService->resolveOrCreate($validated)?->id,
             'created_by' => $request->user()->id,
         ]);
+
+        // Create ShopStock entries for all shops in the company
+        $companyId = $request->user()->company_id;
+
+        $shops = Shop::withoutGlobalScopes()
+            ->where('company_id', $companyId)
+            ->where('is_active', true)
+            ->get();
+
+        foreach ($shops as $shop) {
+            ShopStock::create([
+                'product_id' => $product->id,
+                'shop_id' => $shop->id,
+                'quantity' => 0,
+                'stock_alert' => 0,
+                'company_id' => $companyId,
+            ]);
+        }
 
         return response()->json([
             'product' => [
