@@ -6,12 +6,17 @@ use App\Data\Logistics\LogisticChargeData;
 use App\Enums\LogisticChargeType;
 use App\Http\Controllers\Controller;
 use App\Models\Logistics\LogisticCharge;
+use App\Services\AccountingIntegrationService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class LogisticChargeController extends Controller
 {
+    public function __construct(
+        private AccountingIntegrationService $accountingService,
+    ) {}
+
     public function index(): Response
     {
         $this->authorize('viewAny', LogisticCharge::class);
@@ -40,10 +45,13 @@ class LogisticChargeController extends Controller
     {
         $this->authorize('create', LogisticCharge::class);
 
-        LogisticCharge::create([
+        $charge = LogisticCharge::create([
             ...$data->toArray(),
             'created_by' => auth()->id(),
         ]);
+
+        // Record in accounting system (standalone charges only)
+        $this->accountingService->recordLogisticCharge($charge);
 
         return to_route('admin.logistics.charges.index')
             ->with('success', 'Charge logistique enregistrée avec succès.');

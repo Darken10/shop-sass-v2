@@ -18,6 +18,7 @@ use App\Models\Product\Product;
 use App\Models\Product\ProductCategory;
 use App\Models\User;
 use App\Notifications\MerchandiseReceivedNotification;
+use App\Services\AccountingIntegrationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -28,6 +29,10 @@ use Inertia\Response;
 
 class SupplyRequestController extends Controller
 {
+    public function __construct(
+        private AccountingIntegrationService $accountingService,
+    ) {}
+
     public function index(): Response
     {
         $this->authorize('viewAny', SupplyRequest::class);
@@ -338,6 +343,9 @@ class SupplyRequestController extends Controller
                 'received_by' => auth()->id(),
             ]);
         });
+
+        // Record in accounting system
+        $this->accountingService->recordSupplyReceived($supplyRequest);
 
         $managers = User::query()
             ->where('company_id', $supplyRequest->company_id)

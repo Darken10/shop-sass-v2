@@ -6,12 +6,17 @@ use App\Data\Logistics\FuelLogData;
 use App\Http\Controllers\Controller;
 use App\Models\Logistics\FuelLog;
 use App\Models\Logistics\Vehicle;
+use App\Services\AccountingIntegrationService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class FuelLogController extends Controller
 {
+    public function __construct(
+        private AccountingIntegrationService $accountingService,
+    ) {}
+
     public function index(): Response
     {
         $this->authorize('viewAny', FuelLog::class);
@@ -40,10 +45,13 @@ class FuelLogController extends Controller
     {
         $this->authorize('create', FuelLog::class);
 
-        FuelLog::create([
+        $fuelLog = FuelLog::create([
             ...$data->toArray(),
             'created_by' => auth()->id(),
         ]);
+
+        // Record in accounting system
+        $this->accountingService->recordFuelLog($fuelLog);
 
         return to_route('admin.logistics.fuel-logs.index')
             ->with('success', 'Ravitaillement enregistré avec succès.');

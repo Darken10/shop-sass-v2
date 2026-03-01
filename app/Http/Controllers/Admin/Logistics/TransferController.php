@@ -20,6 +20,7 @@ use App\Models\Logistics\WarehouseStock;
 use App\Models\Product\Product;
 use App\Models\User;
 use App\Notifications\TransferReceivedNotification;
+use App\Services\AccountingIntegrationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -30,6 +31,10 @@ use Inertia\Response;
 
 class TransferController extends Controller
 {
+    public function __construct(
+        private AccountingIntegrationService $accountingService,
+    ) {}
+
     public function index(): Response
     {
         $this->authorize('viewAny', Transfer::class);
@@ -333,6 +338,9 @@ class TransferController extends Controller
                 'received_by' => auth()->id(),
             ]);
         });
+
+        // Record in accounting system
+        $this->accountingService->recordTransferReceived($transfer);
 
         $managers = User::query()
             ->where('company_id', $transfer->company_id)

@@ -583,6 +583,9 @@ class FinancialService
             'status' => ExpenseStatus::Approved,
             'approved_by' => auth()->id(),
         ]);
+
+        // Record approved expense in accounting system
+        app(AccountingIntegrationService::class)->recordApprovedExpense($expense);
     }
 
     public function rejectExpense(Expense $expense): void

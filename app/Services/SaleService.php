@@ -23,6 +23,10 @@ use InvalidArgumentException;
 
 class SaleService
 {
+    public function __construct(
+        private AccountingIntegrationService $accountingService,
+    ) {}
+
     /**
      * Create a new sale from the POS.
      */
@@ -86,7 +90,12 @@ class SaleService
                 $customer->increment('credit_balance', -$amountDue);
             }
 
-            return $sale->load(['items.product', 'payments', 'customer', 'cashier', 'shop']);
+            $sale = $sale->load(['items.product', 'payments', 'customer', 'cashier', 'shop']);
+
+            // Record in accounting system
+            $this->accountingService->recordSale($sale);
+
+            return $sale;
         });
     }
 
@@ -96,7 +105,7 @@ class SaleService
     public function processCreditPayment(Sale $sale, PaymentData $paymentData, CashRegisterSession $session): Sale
     {
         return DB::transaction(function () use ($sale, $paymentData, $session) {
-            SalePayment::create([
+            $payment = SalePayment::create([
                 'method' => $paymentData->method,
                 'amount' => $paymentData->amount,
                 'reference' => $paymentData->reference,
@@ -114,6 +123,9 @@ class SaleService
                 'amount_due' => $newAmountDue,
                 'status' => $newStatus,
             ]);
+
+            // Record credit payment in accounting
+            $this->accountingService->recordCreditPayment($payment, $sale);
 
             return $sale->fresh(['items.product', 'payments', 'customer', 'cashier', 'shop']);
         });

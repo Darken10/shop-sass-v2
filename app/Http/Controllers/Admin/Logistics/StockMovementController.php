@@ -11,6 +11,7 @@ use App\Models\Logistics\Supplier;
 use App\Models\Logistics\Warehouse;
 use App\Models\Logistics\WarehouseStock;
 use App\Models\Product\Product;
+use App\Services\AccountingIntegrationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -18,6 +19,10 @@ use Inertia\Response;
 
 class StockMovementController extends Controller
 {
+    public function __construct(
+        private AccountingIntegrationService $accountingService,
+    ) {}
+
     public function index(): Response
     {
         $this->authorize('viewAny', StockMovement::class);
@@ -62,6 +67,9 @@ class StockMovementController extends Controller
         ]);
 
         $this->applyStockUpdate($movement);
+
+        // Record in accounting system (losses and adjustments)
+        $this->accountingService->recordStockMovement($movement);
 
         return to_route('admin.logistics.movements.index')
             ->with('success', 'Mouvement de stock enregistré avec succès.');
