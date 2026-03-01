@@ -94,6 +94,11 @@ export function AppSidebar() {
                       href: productsIndex().url,
                       icon: Package,
                   } satisfies NavItem,
+                  {
+                      title: 'Catalogue',
+                      href: '/admin/catalog',
+                      icon: PackageSearch,
+                  } satisfies NavItem,
               ]
             : []),
         ...(isAdmin

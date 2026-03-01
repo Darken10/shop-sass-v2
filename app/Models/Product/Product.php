@@ -5,6 +5,7 @@ namespace App\Models\Product;
 use App\Concerns\BelongsToCompany;
 use App\Enums\ProductStatus;
 use App\Enums\ProductUnity;
+use App\Models\Catalog\CatalogProduct;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -36,6 +37,7 @@ class Product extends Model
         'image',
         'category_id',
         'company_id',
+        'catalog_product_id',
         'created_by',
     ];
 
@@ -67,5 +69,10 @@ class Product extends Model
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(ProductTag::class, 'product_product_tag');
+    }
+
+    public function catalogProduct(): BelongsTo
+    {
+        return $this->belongsTo(CatalogProduct::class, 'catalog_product_id');
     }
 }

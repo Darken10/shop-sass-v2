@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\CatalogProductController;
 use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\ProductCategoryController;
 use App\Http\Controllers\Admin\ProductController;
@@ -28,4 +29,12 @@ Route::middleware(['auth', 'verified'])
             ->name('product-categories.store');
         Route::post('product-tags', [ProductTagController::class, 'store'])
             ->name('product-tags.store');
+
+        // Catalogue global de produits
+        Route::get('catalog', [CatalogProductController::class, 'index'])
+            ->name('catalog.index');
+        Route::get('catalog/search', [CatalogProductController::class, 'search'])
+            ->name('catalog.search');
+        Route::get('catalog/{catalogProduct}', [CatalogProductController::class, 'show'])
+            ->name('catalog.show');
     });

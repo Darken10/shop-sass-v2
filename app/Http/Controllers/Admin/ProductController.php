@@ -10,6 +10,7 @@ use App\Http\Requests\Product\UpdateProductRequest;
 use App\Models\Product\Product;
 use App\Models\Product\ProductCategory;
 use App\Models\Product\ProductTag;
+use App\Services\CatalogProductService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,6 +20,8 @@ use Inertia\Response;
 
 class ProductController extends Controller
 {
+    public function __construct(private readonly CatalogProductService $catalogService) {}
+
     public function index(): Response
     {
         $this->authorize('viewAny', Product::class);
@@ -57,6 +60,8 @@ class ProductController extends Controller
             $image = $request->file('image')->store('products', 'public');
         }
 
+        $catalogProduct = $this->catalogService->resolveOrCreate($validated);
+
         $product = Product::create([
             'name' => $validated['name'],
             'code' => $validated['code'],
@@ -69,6 +74,7 @@ class ProductController extends Controller
             'status' => $validated['status'],
             'image' => $image,
             'category_id' => $validated['category_id'],
+            'catalog_product_id' => $catalogProduct?->id,
             'created_by' => $request->user()->id,
         ]);
 
@@ -170,6 +176,7 @@ class ProductController extends Controller
             'unity' => $validated['unity'],
             'status' => ProductStatus::ACTIVE,
             'category_id' => $validated['category_id'],
+            'catalog_product_id' => $this->catalogService->resolveOrCreate($validated)?->id,
             'created_by' => $request->user()->id,
         ]);
 
