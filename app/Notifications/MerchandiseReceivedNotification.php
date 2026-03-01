@@ -25,7 +25,8 @@ class MerchandiseReceivedNotification extends Notification
 
     public function toMail(object $notifiable): MerchandiseReceivedMail
     {
-        return new MerchandiseReceivedMail($notifiable, $this->supplyRequest);
+        return (new MerchandiseReceivedMail($notifiable, $this->supplyRequest))
+            ->to($notifiable->email, $notifiable->name);
     }
 
     public function toArray(object $notifiable): array

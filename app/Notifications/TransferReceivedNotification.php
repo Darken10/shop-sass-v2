@@ -23,9 +23,10 @@ class TransferReceivedNotification extends Notification
         return $channels;
     }
 
-    public function toMail(object $notifiable): MailMessage
+    public function toMail(object $notifiable): TransferReceivedMail
     {
-        return new TransferReceivedMail($notifiable, $this->transfer);
+        return (new TransferReceivedMail($notifiable, $this->transfer))
+            ->to($notifiable->email, $notifiable->name);
     }
 
     public function toArray(object $notifiable): array

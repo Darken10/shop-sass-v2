@@ -21,6 +21,7 @@ class AccountActivationNotification extends Notification
             ['user' => $notifiable->id],
         );
 
-        return new AccountActivationMail($notifiable, $activationUrl);
+        return (new AccountActivationMail($notifiable, $activationUrl))
+            ->to($notifiable->email, $notifiable->name);
     }
 }
