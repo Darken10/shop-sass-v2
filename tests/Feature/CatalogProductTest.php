@@ -173,3 +173,65 @@ it('returns catalog product details by id', function () {
         ->assertJsonPath('data.name', 'Nutella')
         ->assertJsonPath('data.brand', 'Ferrero');
 });
+
+// --- importToCompany ---
+
+it('imports a catalog product into the company product list', function () {
+    $catalog = CatalogProduct::factory()->create([
+        'barcode' => '5000112602791',
+        'name' => 'Sprite',
+    ]);
+
+    actingAs($this->user);
+
+    $this->post("/admin/catalog/{$catalog->id}/import", [
+        'price' => 1.50,
+        'cost_price' => 0.80,
+        'stock' => 50,
+        'stock_alert' => 5,
+        'unity' => 'piece',
+        'status' => 'active',
+        'category_id' => $this->category->id,
+    ])->assertRedirect();
+
+    assertDatabaseHas('products', [
+        'code' => '5000112602791',
+        'name' => 'Sprite',
+        'company_id' => $this->company->id,
+        'catalog_product_id' => $catalog->id,
+    ]);
+});
+
+it('prevents importing the same catalog product twice into the same company', function () {
+    $catalog = CatalogProduct::factory()->create(['barcode' => '5000112602791', 'name' => 'Sprite']);
+
+    // Create the product already in the company
+    Product::create([
+        'name' => 'Sprite',
+        'code' => '5000112602791',
+        'price' => 1.50,
+        'cost_price' => 0.80,
+        'stock' => 50,
+        'stock_alert' => 5,
+        'unity' => 'piece',
+        'status' => 'active',
+        'company_id' => $this->company->id,
+        'category_id' => $this->category->id,
+        'catalog_product_id' => $catalog->id,
+        'created_by' => $this->user->id,
+    ]);
+
+    actingAs($this->user);
+
+    $this->post("/admin/catalog/{$catalog->id}/import", [
+        'price' => 1.50,
+        'cost_price' => 0.80,
+        'stock' => 50,
+        'stock_alert' => 5,
+        'unity' => 'piece',
+        'status' => 'active',
+        'category_id' => $this->category->id,
+    ])->assertRedirect()->assertSessionHas('error');
+
+    expect(Product::withoutGlobalScopes()->where('code', '5000112602791')->count())->toBe(1);
+});

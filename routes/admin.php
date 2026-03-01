@@ -37,4 +37,6 @@ Route::middleware(['auth', 'verified'])
             ->name('catalog.search');
         Route::get('catalog/{catalogProduct}', [CatalogProductController::class, 'show'])
             ->name('catalog.show');
+        Route::post('catalog/{catalogProduct}/import', [CatalogProductController::class, 'importToCompany'])
+            ->name('catalog.import');
     });
