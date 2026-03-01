@@ -2,16 +2,12 @@
 
 namespace App\Notifications;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\URL;
 
-class AccountActivationNotification extends Notification implements ShouldQueue
+class AccountActivationNotification extends Notification
 {
-    use Queueable;
-
     public function via(object $notifiable): array
     {
         return ['mail'];
@@ -26,11 +22,10 @@ class AccountActivationNotification extends Notification implements ShouldQueue
         );
 
         return (new MailMessage)
-            ->subject('Activez votre compte')
-            ->greeting("Bonjour {$notifiable->name},")
-            ->line('Un compte a été créé pour vous. Veuillez cliquer sur le bouton ci-dessous pour définir votre mot de passe et activer votre compte.')
-            ->action('Activer mon compte', $activationUrl)
-            ->line('Ce lien est valide pendant 24 heures.')
-            ->line('Si vous n\'avez pas demandé de compte, aucune action n\'est nécessaire.');
+            ->subject('Activez votre compte — '.config('app.name'))
+            ->view('emails.account-activation', [
+                'user' => $notifiable,
+                'activationUrl' => $activationUrl,
+            ]);
     }
 }

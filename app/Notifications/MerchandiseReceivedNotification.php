@@ -3,15 +3,11 @@
 namespace App\Notifications;
 
 use App\Models\Logistics\SupplyRequest;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class MerchandiseReceivedNotification extends Notification implements ShouldQueue
+class MerchandiseReceivedNotification extends Notification
 {
-    use Queueable;
-
     public function __construct(public readonly SupplyRequest $supplyRequest) {}
 
     public function via(object $notifiable): array
@@ -29,18 +25,12 @@ class MerchandiseReceivedNotification extends Notification implements ShouldQueu
 
     public function toMail(object $notifiable): MailMessage
     {
-        $supplyRequest = $this->supplyRequest;
-
         return (new MailMessage)
-            ->subject("Marchandises réceptionnées — {$supplyRequest->reference}")
-            ->greeting("Bonjour {$notifiable->name},")
-            ->line("La demande d'approvisionnement **{$supplyRequest->reference}** a été réceptionnée avec succès.")
-            ->line('**Détails de la réception :**')
-            ->line("- Référence : {$supplyRequest->reference}")
-            ->line("- Type : {$supplyRequest->type->label()}")
-            ->line('- Réceptionné le : '.($supplyRequest->received_at?->format('d/m/Y H:i') ?? 'N/A'))
-            ->line('Veuillez vous connecter pour consulter les détails complets.')
-            ->line('Merci d\'utiliser notre plateforme.');
+            ->subject("Marchandises réceptionnées — {$this->supplyRequest->reference}")
+            ->view('emails.merchandise-received', [
+                'notifiable' => $notifiable,
+                'supplyRequest' => $this->supplyRequest,
+            ]);
     }
 
     public function toArray(object $notifiable): array
