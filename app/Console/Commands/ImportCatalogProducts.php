@@ -5,9 +5,9 @@ namespace App\Console\Commands;
 use App\Models\Catalog\CatalogProduct;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
+use OpenFoodFacts\Api;
 use OpenFoodFacts\Exception\BadRequestException;
 use OpenFoodFacts\Exceptions\Exception;
-use OpenFoodFacts\Laravel\Facades\OpenFoodFacts;
 
 class ImportCatalogProducts extends Command
 {
@@ -30,6 +30,10 @@ class ImportCatalogProducts extends Command
 
         $terms = array_map('trim', explode(',', $termsInput));
 
+        // Instantiate the API without a cache adapter to avoid serialisation
+        // errors caused by large responses overflowing the database cache column.
+        $api = new Api('food', 'world');
+
         $this->info("Démarrage de l'import depuis Open Food Facts (limite globale : {$limit} produits)…");
         $this->info('Termes de recherche : '.implode(', ', $terms));
         $this->newLine();
@@ -43,22 +47,21 @@ class ImportCatalogProducts extends Command
             $this->line("→ Recherche pour '{$term}' ({$remaining} produits restants)…");
 
             try {
-                $products = OpenFoodFacts::find($term);
+                $page = 0;
 
-                if (empty($products)) {
-                    $this->warn("  Aucun résultat pour '{$term}'");
-                    sleep($delay);
+                do {
+                    $pageResults = $api->search($term, ++$page, 100);
+                    $totalMatches = $pageResults->searchCount();
+                    $pages = (int) ceil($totalMatches / max(1, $pageResults->getPageSize()));
 
-                    continue;
-                }
+                    foreach ($pageResults as $document) {
+                        if ($this->imported >= $limit) {
+                            break 2;
+                        }
 
-                foreach ($products as $item) {
-                    if ($this->imported >= $limit) {
-                        break;
+                        $this->processProduct($document->getData());
                     }
-
-                    $this->processProduct($item);
-                }
+                } while ($page < $pages);
 
                 $this->info("  ✓ {$term} : {$this->imported} importé(s), {$this->skipped} ignoré(s)");
 
