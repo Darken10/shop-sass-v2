@@ -2,8 +2,8 @@
 
 namespace App\Notifications;
 
+use App\Mail\MerchandiseReceivedMail;
 use App\Models\Logistics\SupplyRequest;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class MerchandiseReceivedNotification extends Notification
@@ -23,14 +23,9 @@ class MerchandiseReceivedNotification extends Notification
         return $channels;
     }
 
-    public function toMail(object $notifiable): MailMessage
+    public function toMail(object $notifiable): MerchandiseReceivedMail
     {
-        return (new MailMessage)
-            ->subject("Marchandises réceptionnées — {$this->supplyRequest->reference}")
-            ->view('emails.merchandise-received', [
-                'notifiable' => $notifiable,
-                'supplyRequest' => $this->supplyRequest,
-            ]);
+        return new MerchandiseReceivedMail($notifiable, $this->supplyRequest);
     }
 
     public function toArray(object $notifiable): array

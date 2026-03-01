@@ -2,7 +2,7 @@
 
 namespace App\Notifications;
 
-use Illuminate\Notifications\Messages\MailMessage;
+use App\Mail\AccountActivationMail;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\URL;
 
@@ -13,7 +13,7 @@ class AccountActivationNotification extends Notification
         return ['mail'];
     }
 
-    public function toMail(object $notifiable): MailMessage
+    public function toMail(object $notifiable): AccountActivationMail
     {
         $activationUrl = URL::temporarySignedRoute(
             'account.activate',
@@ -21,11 +21,6 @@ class AccountActivationNotification extends Notification
             ['user' => $notifiable->id],
         );
 
-        return (new MailMessage)
-            ->subject('Activez votre compte — '.config('app.name'))
-            ->view('emails.account-activation', [
-                'user' => $notifiable,
-                'activationUrl' => $activationUrl,
-            ]);
+        return new AccountActivationMail($notifiable, $activationUrl);
     }
 }

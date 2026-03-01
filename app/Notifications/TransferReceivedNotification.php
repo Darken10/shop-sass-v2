@@ -2,8 +2,8 @@
 
 namespace App\Notifications;
 
+use App\Mail\TransferReceivedMail;
 use App\Models\Logistics\Transfer;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class TransferReceivedNotification extends Notification
@@ -25,12 +25,7 @@ class TransferReceivedNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
-            ->subject("Transfert réceptionné — {$this->transfer->reference}")
-            ->view('emails.transfer-received', [
-                'notifiable' => $notifiable,
-                'transfer' => $this->transfer,
-            ]);
+        return new TransferReceivedMail($notifiable, $this->transfer);
     }
 
     public function toArray(object $notifiable): array

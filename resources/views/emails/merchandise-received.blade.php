@@ -1,37 +1,126 @@
-@extends('emails.layout')
+<!DOCTYPE html>
+<html lang="fr" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="x-apple-disable-message-reformatting">
+    <title>Marchandises r&eacute;ceptionn&eacute;es &mdash; {{ $supplyRequest->reference }}</title>
+    <style>
+        body{margin:0;padding:0;background-color:#eeecfd;}
+        table{border-spacing:0;}
+        @media only screen and (max-width:600px){
+            .w600{width:100%!important;}
+            .pad{padding:28px 20px!important;}
+            .hpad{padding:32px 20px!important;}
+        }
+    </style>
+</head>
+<body style="margin:0;padding:0;background-color:#eeecfd;">
 
-@section('subject', "Marchandises réceptionnées — {$supplyRequest->reference}")
-@section('badge', 'Réception marchandises')
-@php $badgeType = 'success'; @endphp
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#eeecfd;">
+<tr><td align="center" style="padding:40px 16px;">
 
-@section('content')
-    <p class="greeting">Bonjour {{ $notifiable->name }},</p>
+    <table role="presentation" class="w600" width="600" cellspacing="0" cellpadding="0" border="0"
+           style="max-width:600px;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(74,40,196,0.12);">
 
-    <div class="content">
-        <p>
-            La demande d'approvisionnement <strong>{{ $supplyRequest->reference }}</strong> a été
-            <strong style="color: #059669;">réceptionnée avec succès</strong>.
-        </p>
+        <!-- Stripe top -->
+        <tr><td style="height:5px;font-size:0;line-height:0;background:linear-gradient(90deg,#4a28c4,#7c52f0,#a78bfa);"></td></tr>
 
-        <div class="info-card">
-            <div class="info-row">
-                <span class="info-label">Référence</span>
-                <span class="info-value">{{ $supplyRequest->reference }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Type</span>
-                <span class="info-value">{{ $supplyRequest->type->label() }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Réceptionné le</span>
-                <span class="info-value">
-                    {{ $supplyRequest->received_at?->format('d/m/Y à H:i') ?? 'N/A' }}
-                </span>
-            </div>
-        </div>
+        <!-- Header -->
+        <tr><td class="hpad" align="center"
+                style="padding:42px 48px 38px;background:linear-gradient(155deg,#2e1a85 0%,#4a28c4 50%,#7048e8 100%);">
 
-        <p>
-            Connectez-vous à votre espace pour consulter les détails complets de cette réception.
-        </p>
-    </div>
-@endsection
+            <!-- Brand -->
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto 22px;">
+            <tr>
+                <td style="background:rgba(255,255,255,0.15);border-radius:12px;padding:10px 13px;line-height:0;vertical-align:middle;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
+                        <line x1="3" y1="6" x2="21" y2="6" stroke="#fff" stroke-width="2"/>
+                        <path d="M16 10a4 4 0 01-8 0" stroke="#fff" stroke-width="2"/>
+                    </svg>
+                </td>
+                <td style="padding-left:10px;vertical-align:middle;">
+                    <span style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:20px;font-weight:800;color:#fff;letter-spacing:-0.4px;">{{ config('app.name') }}</span>
+                </td>
+            </tr>
+            </table>
+
+            <!-- Badge success -->
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto 18px;">
+            <tr><td style="background:rgba(52,211,153,0.22);border-radius:20px;padding:5px 18px;">
+                <span style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#a7f3d0;">R&eacute;ception marchandises</span>
+            </td></tr>
+            </table>
+
+            <!-- Checkmark icon -->
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto 16px;">
+            <tr><td style="background:rgba(52,211,153,0.20);border-radius:50%;width:52px;height:52px;text-align:center;vertical-align:middle;">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin:13px auto 0;display:block;">
+                    <polyline points="20 6 9 17 4 12" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </td></tr>
+            </table>
+
+            <!-- Title -->
+            <p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:26px;font-weight:800;color:#fff;line-height:1.2;letter-spacing:-0.5px;">Marchandises r&eacute;ceptionn&eacute;es</p>
+            <p style="margin:10px 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:14px;color:rgba(255,255,255,0.70);line-height:1.5;">{{ $supplyRequest->reference }}</p>
+
+        </td></tr>
+
+        <!-- Body -->
+        <tr><td class="pad" style="padding:40px 48px;">
+
+            <p style="margin:0 0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:18px;font-weight:700;color:#1e1528;">Bonjour {{ $notifiable->name }},</p>
+
+            <p style="margin:0 0 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:15px;color:#4a4067;line-height:1.7;">
+                La demande d&rsquo;approvisionnement <strong style="color:#1e1528;">{{ $supplyRequest->reference }}</strong>
+                a &eacute;t&eacute; <strong style="color:#059669;">r&eacute;ceptionn&eacute;e avec succ&egrave;s</strong>.
+            </p>
+
+            <!-- Info card -->
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+                   style="background:#f5f3ff;border-radius:12px;border-left:3px solid #7c52f0;margin:0 0 28px;">
+                <tr><td style="padding:14px 20px;border-bottom:1px solid #ede8fb;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr>
+                        <td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;color:#8b7fae;font-weight:500;">R&eacute;f&eacute;rence</td>
+                        <td align="right" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;color:#1e1528;font-weight:700;">{{ $supplyRequest->reference }}</td>
+                    </tr></table>
+                </td></tr>
+                <tr><td style="padding:14px 20px;border-bottom:1px solid #ede8fb;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr>
+                        <td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;color:#8b7fae;font-weight:500;">Type</td>
+                        <td align="right" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;color:#1e1528;font-weight:700;">{{ $supplyRequest->type->label() }}</td>
+                    </tr></table>
+                </td></tr>
+                <tr><td style="padding:14px 20px;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr>
+                        <td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;color:#8b7fae;font-weight:500;">R&eacute;ceptionn&eacute; le</td>
+                        <td align="right" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;color:#1e1528;font-weight:700;">{{ $supplyRequest->received_at?->format('d/m/Y \à H:i') ?? 'N/A' }}</td>
+                    </tr></table>
+                </td></tr>
+            </table>
+
+            <p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:14px;color:#4a4067;line-height:1.7;">
+                Connectez-vous &agrave; votre espace pour consulter les d&eacute;tails complets de cette r&eacute;ception.
+            </p>
+
+        </td></tr>
+
+        <!-- Footer -->
+        <tr><td align="center" style="background:#f8f6ff;border-top:1px solid #ede8fb;padding:26px 48px;">
+            <p style="margin:0 0 5px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:12.5px;color:#8b7fae;line-height:1.8;">
+                Envoy&eacute; par <strong style="color:#5b35d5;">{{ config('app.name') }}</strong> &mdash; Pour toute question, contactez votre administrateur.
+            </p>
+            <p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:11px;color:#bbb3d8;">
+                &copy; {{ date('Y') }} {{ config('app.name') }}. Tous droits r&eacute;serv&eacute;s.
+            </p>
+        </td></tr>
+
+    </table>
+
+</td></tr>
+</table>
+</body>
+</html>
